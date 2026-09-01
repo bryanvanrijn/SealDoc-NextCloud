@@ -1,0 +1,18 @@
+{
+	"name": "sealdoc/nextcloud",
+	"description": "Nextcloud app that turns stored documents into evidence via the SealDoc API",
+	"license": "AGPL-3.0-or-later",
+	"type": "project",
+	"require": {
+		"php": ">=8.1"
+	},
+	"autoload": {
+		"psr-4": {
+			"OCA\SealDoc\\": "lib/"
+		}
+	},
+	"config": {
+		"optimize-autoloader": true,
+		"sort-packages": true
+	}
+}

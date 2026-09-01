@@ -1,0 +1,10 @@
+#sealdoc-admin .sealdoc-muted {
+	margin-left: .75em;
+	opacity: .7;
+}
+
+#sealdoc-admin label {
+	display: inline-block;
+	margin-bottom: .25em;
+	font-weight: bold;
+}

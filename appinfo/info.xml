@@ -1,0 +1,66 @@
+<?xml version="1.0"?>
+<info xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+      xsi:noNamespaceSchemaLocation="https://apps.nextcloud.com/schema/apps/info.xsd">
+	<id>sealdoc</id>
+	<name>SealDoc</name>
+	<summary>Turn stored documents into evidence: PDF/A-3B, trusted timestamp and chain of custody</summary>
+	<description><![CDATA[
+Nextcloud stores your documents. It does not, on its own, prove that a document
+has not changed since you filed it, or that it existed on the date you claim.
+For invoices, contracts and personnel records that have to survive a statutory
+retention period, that difference only becomes visible at the moment somebody
+asks, which is usually years later.
+
+This app connects Nextcloud to SealDoc. Every document it processes comes back
+as a **PDF/A-3B** file validated against ISO 19005-3, carrying an **RFC 3161
+timestamp** from a trusted authority, a **SHA-384 hash chain** and a
+**chain-of-custody** record, exported as a single evidence pack.
+
+**How you use it**
+
+- As a Flow (workflow) action: *when a file is created in /Invoices, seal it*.
+- The sealed file is written back next to the original, so it stays in the
+  folder and the sharing you already have.
+
+**What it does not do**
+
+- It does not provide electronic signatures. It proves a document has not
+  changed, not who agreed to it. Those are different questions.
+- The timestamps are RFC 3161 timestamps from a trusted authority. They are
+  **not** qualified timestamps under eIDAS.
+- It is not an archive. It produces evidence designed to outlive the service;
+  the file stays in your Nextcloud.
+
+**Where the processing happens**
+
+You choose. Point the app at the hosted service in the EU, or at your own
+self-hosted SealDoc instance. The app talks to nothing else.
+	]]></description>
+	<version>0.1.0</version>
+	<licence>agpl</licence>
+	<author mail="bryan@fefem.nl">Bryan van Rijn</author>
+	<namespace>SealDoc</namespace>
+
+	<types>
+		<filesystem/>
+	</types>
+
+	<category>files</category>
+	<category>integration</category>
+
+	<website>https://www.sealdoc.eu</website>
+	<bugs>https://github.com/bryanvanrijn/SealDoc-NextCloud/issues</bugs>
+	<repository type="git">https://github.com/bryanvanrijn/SealDoc-NextCloud.git</repository>
+
+	<screenshot>https://raw.githubusercontent.com/bryanvanrijn/SealDoc-NextCloud/main/screenshots/admin-settings.png</screenshot>
+
+	<dependencies>
+		<php min-version="8.1"/>
+		<nextcloud min-version="29" max-version="31"/>
+	</dependencies>
+
+	<settings>
+		<admin>OCA\SealDoc\Settings\Admin</admin>
+		<admin-section>OCA\SealDoc\Settings\AdminSection</admin-section>
+	</settings>
+</info>
