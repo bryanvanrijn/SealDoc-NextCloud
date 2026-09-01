@@ -92,5 +92,24 @@ try {
 	check('client resolves: ' . $e->getMessage(), false);
 }
 
+// 6. The seal record, which is what makes a sealed file recognisable later.
+//    A naming convention would not survive the first rename in a shared folder.
+try {
+	$mapper = $server->get(\OCA\SealDoc\Db\SealMapper::class);
+	check('seal mapper resolves', true);
+	check('lookup on an unknown file returns null', $mapper->findByAnyFileId(999999999) === null);
+} catch (\Throwable $e) {
+	check('seal mapper resolves: ' . $e->getMessage(), false);
+}
+
+// 7. The evidence pack is off by default and lands somewhere sane when on.
+try {
+	$c = $server->get(\OCA\SealDoc\Service\SealDocClient::class);
+	check('evidence storage is off until switched on', $c->isStoringEvidence() === false);
+	check('evidence folder is absolute', str_starts_with($c->getEvidenceFolder(), '/'));
+} catch (\Throwable $e) {
+	check('evidence settings: ' . $e->getMessage(), false);
+}
+
 echo "\n" . ($fail === 0 ? "all checks passed\n" : "$fail check(s) FAILED\n");
 exit($fail === 0 ? 0 : 1);

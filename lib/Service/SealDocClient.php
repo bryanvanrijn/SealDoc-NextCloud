@@ -30,6 +30,16 @@ class SealDocClient {
 
 	private const CONFIG_BASE_URL = 'base_url';
 	private const CONFIG_API_KEY = 'api_key';
+	private const CONFIG_EVIDENCE_FOLDER = 'evidence_folder';
+	private const CONFIG_STORE_EVIDENCE = 'store_evidence';
+
+	/**
+	 * Default off, and that is deliberate. Storing the pack doubles the number
+	 * of files an administrator sees per document, and a folder that suddenly
+	 * holds three times as much is the complaint you get before the compliance
+	 * benefit is ever noticed. Turning it on should be a decision.
+	 */
+	public const DEFAULT_EVIDENCE_FOLDER = '/SealDoc evidence';
 
 	public function __construct(
 		private IClientService $clientService,
@@ -74,6 +84,23 @@ class SealDocClient {
 			// confusing 401 further down.
 			throw new RuntimeException('Stored SealDoc API key could not be decrypted', 0, $e);
 		}
+	}
+
+	public function isStoringEvidence(): bool {
+		return $this->config->getAppValue(self::APP_ID, self::CONFIG_STORE_EVIDENCE, 'no') === 'yes';
+	}
+
+	public function setStoringEvidence(bool $on): void {
+		$this->config->setAppValue(self::APP_ID, self::CONFIG_STORE_EVIDENCE, $on ? 'yes' : 'no');
+	}
+
+	public function getEvidenceFolder(): string {
+		$v = trim((string)$this->config->getAppValue(self::APP_ID, self::CONFIG_EVIDENCE_FOLDER, self::DEFAULT_EVIDENCE_FOLDER));
+		return $v === '' ? self::DEFAULT_EVIDENCE_FOLDER : '/' . trim($v, '/');
+	}
+
+	public function setEvidenceFolder(string $path): void {
+		$this->config->setAppValue(self::APP_ID, self::CONFIG_EVIDENCE_FOLDER, '/' . trim(trim($path), '/'));
 	}
 
 	public function isConfigured(): bool {
@@ -150,6 +177,23 @@ class SealDocClient {
 			'status' => strtolower((string)($body['status'] ?? 'unknown')),
 			'error' => isset($body['errorMessage']) ? (string)$body['errorMessage'] : null,
 		];
+	}
+
+	/**
+	 * The evidence pack: the document, the audit trail and a manifest that
+	 * seals both the individual files and the set.
+	 *
+	 * Kept separate from download() on purpose. The sealed PDF proves itself;
+	 * the pack proves the chain around it, and for a retention obligation that
+	 * is the artefact an auditor asks for. Which of the two an administrator
+	 * wants stored is a choice, so it is a setting rather than an assumption.
+	 */
+	public function downloadEvidencePack(string $jobId): string {
+		$response = $this->clientService->newClient()->get($this->getBaseUrl() . '/api/jobs/' . rawurlencode($jobId) . '/evidence-pack', [
+			'timeout' => 120,
+			'headers' => ['X-API-Key' => $this->getApiKey()],
+		]);
+		return (string)$response->getBody();
 	}
 
 	public function download(string $jobId): string {

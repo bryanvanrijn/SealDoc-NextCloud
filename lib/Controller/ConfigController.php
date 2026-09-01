@@ -21,9 +21,15 @@ class ConfigController extends Controller {
 	}
 
 	#[AuthorizedAdminSetting(settings: IDelegatedSettings::class)]
-	public function setConfig(?string $baseUrl = null, ?string $apiKey = null): DataResponse {
+	public function setConfig(?string $baseUrl = null, ?string $apiKey = null, ?bool $storeEvidence = null, ?string $evidenceFolder = null): DataResponse {
 		if ($baseUrl !== null) {
 			$this->client->setBaseUrl($baseUrl);
+		}
+		if ($storeEvidence !== null) {
+			$this->client->setStoringEvidence($storeEvidence);
+		}
+		if ($evidenceFolder !== null) {
+			$this->client->setEvidenceFolder($evidenceFolder);
 		}
 		// An empty string means "clear the key". A null means "leave it
 		// alone", which is what the form sends when the administrator only
@@ -36,6 +42,8 @@ class ConfigController extends Controller {
 		return new DataResponse([
 			'baseUrl' => $this->client->getBaseUrl(),
 			'hasApiKey' => $this->client->hasApiKey(),
+			'storeEvidence' => $this->client->isStoringEvidence(),
+			'evidenceFolder' => $this->client->getEvidenceFolder(),
 		]);
 	}
 

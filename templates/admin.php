@@ -20,6 +20,17 @@ declare(strict_types=1);
 	</p>
 
 	<p>
+		<input type="checkbox" id="sealdoc-store-evidence" class="checkbox">
+		<label for="sealdoc-store-evidence"><?php p($l->t('Also store the evidence pack')); ?></label>
+	</p>
+
+	<p>
+		<label for="sealdoc-evidence-folder"><?php p($l->t('Evidence folder')); ?></label><br>
+		<input type="text" id="sealdoc-evidence-folder" placeholder="/SealDoc evidence" style="width: 24em;">
+		<span class="sealdoc-muted"><?php p($l->t('Packs are filed per year inside this folder.')); ?></span>
+	</p>
+
+	<p>
 		<button id="sealdoc-save"><?php p($l->t('Save')); ?></button>
 		<button id="sealdoc-test"><?php p($l->t('Test connection')); ?></button>
 		<span id="sealdoc-result" class="sealdoc-muted"></span>

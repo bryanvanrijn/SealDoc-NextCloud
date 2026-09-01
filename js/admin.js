@@ -16,7 +16,12 @@
 	const keyState = document.getElementById('sealdoc-key-state')
 	const result = document.getElementById('sealdoc-result')
 
+	const store = document.getElementById('sealdoc-store-evidence')
+	const folder = document.getElementById('sealdoc-evidence-folder')
+
 	url.value = state.baseUrl || ''
+	store.checked = !!state.storeEvidence
+	folder.value = state.evidenceFolder || ''
 	renderKeyState(state.hasApiKey)
 
 	function renderKeyState(has) {
@@ -28,7 +33,11 @@
 	}
 
 	document.getElementById('sealdoc-save').addEventListener('click', function () {
-		const body = { baseUrl: url.value }
+		const body = {
+			baseUrl: url.value,
+			storeEvidence: store.checked,
+			evidenceFolder: folder.value,
+		}
 		// Only send the key when the field was actually filled in. An empty
 		// field means "leave what is stored alone", not "delete it"; the
 		// administrator who came here to fix a typo in the URL should not lose

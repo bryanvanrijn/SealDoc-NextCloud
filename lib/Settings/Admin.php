@@ -26,6 +26,8 @@ class Admin implements ISettings {
 		$this->initialState->provideInitialState('config', [
 			'baseUrl' => $this->client->getBaseUrl(),
 			'hasApiKey' => $this->client->hasApiKey(),
+			'storeEvidence' => $this->client->isStoringEvidence(),
+			'evidenceFolder' => $this->client->getEvidenceFolder(),
 		]);
 
 		Util::addScript(Application::APP_ID, 'admin');

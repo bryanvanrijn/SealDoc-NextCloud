@@ -4,15 +4,19 @@ declare(strict_types=1);
 
 namespace OCA\SealDoc\BackgroundJob;
 
+use OCA\SealDoc\Db\Seal;
+use OCA\SealDoc\Db\SealMapper;
 use OCA\SealDoc\Service\SealDocClient;
 use OCP\AppFramework\Utility\ITimeFactory;
 use OCP\BackgroundJob\QueuedJob;
 use OCP\Files\File;
+use OCP\Files\Folder;
 use OCP\Files\IRootFolder;
+use OCP\Files\NotFoundException;
 use Psr\Log\LoggerInterface;
 
 /**
- * Does the slow half: upload, wait, write the sealed file back.
+ * Does the slow half: upload, wait, write the results back into Nextcloud.
  *
  * Polling rather than webhooks, deliberately. A webhook would be faster and
  * cheaper, but it requires the Nextcloud instance to be reachable from the
@@ -22,6 +26,7 @@ use Psr\Log\LoggerInterface;
  */
 class SealJob extends QueuedJob {
 	public const SEALED_SUFFIX = '-sealed.pdf';
+	public const EVIDENCE_SUFFIX = '-evidence.zip';
 
 	/** Cap the wait so a stuck job cannot occupy a cron slot forever. */
 	private const MAX_ATTEMPTS = 40;
@@ -31,6 +36,7 @@ class SealJob extends QueuedJob {
 		ITimeFactory $time,
 		private IRootFolder $rootFolder,
 		private SealDocClient $client,
+		private SealMapper $mapper,
 		private LoggerInterface $logger,
 	) {
 		parent::__construct($time);
@@ -58,6 +64,10 @@ class SealJob extends QueuedJob {
 				return;
 			}
 
+			if ($this->mapper->findBySourceFileId($fileId) !== null) {
+				return;
+			}
+
 			$targetName = $this->sealedName($node->getName());
 			$parent = $node->getParent();
 			if ($parent->nodeExists($targetName)) {
@@ -70,10 +80,33 @@ class SealJob extends QueuedJob {
 				return;
 			}
 
-			$parent->newFile($targetName, $sealed);
+			// The sealed document goes next to the original, so it inherits the
+			// folder, the sharing and the versioning the user already set up.
+			$sealedFile = $parent->newFile($targetName, $sealed);
+
+			// The evidence pack goes somewhere else, because it is a different
+			// kind of object: nobody reads it, it exists to be handed over. Put
+			// it in the working folder and every invoice directory doubles in
+			// size, which is the complaint an administrator raises long before
+			// the compliance benefit is noticed.
+			$evidenceFileId = 0;
+			if ($this->client->isStoringEvidence()) {
+				$evidenceFileId = $this->storeEvidence($userFolder, $jobId, $node->getName());
+			}
+
+			$seal = new Seal();
+			$seal->setFileId($fileId);
+			$seal->setJobId($jobId);
+			$seal->setSealedFileId($sealedFile->getId());
+			$seal->setEvidenceFileId($evidenceFileId);
+			$seal->setUserId($userId);
+			$seal->setSealedAt(time());
+			$this->mapper->insert($seal);
+
 			$this->logger->info('SealDoc sealed a document', [
 				'fileId' => $fileId,
 				'target' => $targetName,
+				'evidenceStored' => $evidenceFileId !== 0,
 			]);
 		} catch (\Throwable $e) {
 			// Logged and dropped. Retrying automatically would re-upload the
@@ -82,6 +115,65 @@ class SealJob extends QueuedJob {
 			// recurring bill.
 			$this->logger->error('SealDoc job failed', ['exception' => $e, 'fileId' => $fileId]);
 		}
+	}
+
+	/**
+	 * Writes the evidence pack into the configured folder, foldered by year.
+	 *
+	 * Year subfolders are not decoration. Retention runs in years, and a single
+	 * directory holding a decade of packs is one nobody can navigate and that
+	 * some filesystems handle badly.
+	 *
+	 * @return int the file id of the stored pack, or 0 when it could not be stored
+	 */
+	private function storeEvidence(Folder $userFolder, string $jobId, string $originalName): int {
+		try {
+			$pack = $this->client->downloadEvidencePack($jobId);
+			$folder = $this->ensureFolder($userFolder, $this->client->getEvidenceFolder() . '/' . date('Y'));
+
+			$name = $this->uniqueName($folder, $this->evidenceName($originalName));
+			return $folder->newFile($name, $pack)->getId();
+		} catch (\Throwable $e) {
+			// A missing pack must not undo a successful seal. The sealed
+			// document is already written and is the thing the user asked for.
+			$this->logger->error('SealDoc could not store the evidence pack', [
+				'exception' => $e,
+				'jobId' => $jobId,
+			]);
+			return 0;
+		}
+	}
+
+	private function ensureFolder(Folder $userFolder, string $path): Folder {
+		$parts = array_values(array_filter(explode('/', $path), static fn ($p) => $p !== ''));
+		$current = $userFolder;
+		foreach ($parts as $part) {
+			try {
+				$next = $current->get($part);
+			} catch (NotFoundException) {
+				$next = $current->newFolder($part);
+			}
+			if (!$next instanceof Folder) {
+				throw new \RuntimeException('Evidence path is blocked by a file: ' . $path);
+			}
+			$current = $next;
+		}
+		return $current;
+	}
+
+	/** Two documents with the same name in one year must not overwrite each other. */
+	private function uniqueName(Folder $folder, string $name): string {
+		if (!$folder->nodeExists($name)) {
+			return $name;
+		}
+		$stem = substr($name, 0, -strlen(self::EVIDENCE_SUFFIX));
+		for ($i = 2; $i < 1000; $i++) {
+			$candidate = $stem . '-' . $i . self::EVIDENCE_SUFFIX;
+			if (!$folder->nodeExists($candidate)) {
+				return $candidate;
+			}
+		}
+		return $stem . '-' . time() . self::EVIDENCE_SUFFIX;
 	}
 
 	private function await(string $jobId): ?string {
@@ -105,8 +197,16 @@ class SealJob extends QueuedJob {
 
 	/** invoice.docx -> invoice-sealed.pdf */
 	private function sealedName(string $original): string {
+		return $this->stem($original) . self::SEALED_SUFFIX;
+	}
+
+	/** invoice.docx -> invoice-evidence.zip */
+	private function evidenceName(string $original): string {
+		return $this->stem($original) . self::EVIDENCE_SUFFIX;
+	}
+
+	private function stem(string $original): string {
 		$dot = strrpos($original, '.');
-		$stem = $dot === false ? $original : substr($original, 0, $dot);
-		return $stem . self::SEALED_SUFFIX;
+		return $dot === false ? $original : substr($original, 0, $dot);
 	}
 }

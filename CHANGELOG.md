@@ -9,6 +9,12 @@ First working version. Verified against Nextcloud 30.0.17 with PHP 8.3.
 
 ### Added
 
+- **Evidence pack storage**, off by default. When switched on, the pack is filed in a separate
+  folder (`/SealDoc evidence` by default) with a subfolder per year, so working folders do not
+  double in size and a decade of packs stays navigable.
+- A `sealdoc_seals` table linking a source file to its job, its sealed output and its evidence
+  pack. This is what lets the app answer "is this file sealed, and where is its proof" without
+  guessing from a filename, which would break the first time somebody renames a file.
 - Flow action **Seal document with SealDoc**: converts a matching file to PDF/A-3B with an
   RFC 3161 timestamp, a SHA-384 hash chain and a chain-of-custody record, and writes the result
   back next to the original as `<name>-sealed.pdf`.
