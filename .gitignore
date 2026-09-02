@@ -3,3 +3,10 @@
 /build/
 *.log
 .DS_Store
+
+# The built bundle in js/ IS committed, deliberately.
+#
+# The README promises "clone into custom_apps and enable", and the app store
+# ships whatever is in the release. Ignoring the build output would mean the
+# shield silently does nothing until somebody runs npm, which is exactly the
+# kind of half-working install that gets an app a bad first review.

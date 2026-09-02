@@ -3,6 +3,41 @@
 All notable changes to this app are documented here.
 The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
+## [0.2.0] - 2026-09-02
+
+### Added
+
+- **A shield in the Files list.** A sealed document now carries a shield on its row, and
+  clicking it opens the evidence pack. A folder of invoices says at a glance which documents
+  carry proof and which do not, which is the difference between a converter and a compliance
+  tool.
+- A WebDAV property (`{http://sealdoc.eu/ns}sealed` and `evidence-file-id`) served by a Sabre
+  plugin, so the Files list gets the answer inside the PROPFIND it already makes. An endpoint
+  would have meant an extra request per folder and a flash of missing shields, because the
+  file-action API decides per row synchronously and cannot await anything.
+- Four more checks in `tests/http-check.sh`, covering both halves of the shield. The server
+  contributing the property and the client asking for it are registered in different places and
+  neither complains when the other is missing; without a check, a half-registered shield just
+  never appears.
+
+### Notes on the build
+
+This release introduces the first build step. Nextcloud removed the global
+`OCA.Files.fileActions` API and the replacement lives in `@nextcloud/files`, which has to be
+bundled, so there is no way to draw a per-row action without one.
+
+It is deliberately small: a hand-written 30-line webpack config rather than
+`@nextcloud/webpack-vue-config`. That shared config is built for apps with Vue components and
+pulls in vue-loader, a node polyfill plugin and terser as undeclared peers; this app has one
+plain JavaScript entry and no Vue, so it bought three dependency conflicts and a broken build in
+exchange for nothing. Two Node built-ins are polyfilled explicitly (`string_decoder`, `buffer`)
+rather than with a blanket plugin, so the bundle carries only what it uses and a third one shows
+up as a build failure instead of silent growth.
+
+The built bundle in `js/` is committed. The README promises "clone into custom_apps and enable",
+and the app store ships whatever is in the release; ignoring the build output would mean the
+shield silently does nothing until somebody runs npm.
+
 ## [0.1.1] - 2026-09-02
 
 Fixes found by running the app rather than reading it. All three broke the admin screen and none

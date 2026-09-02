@@ -114,6 +114,23 @@ check "PUT config is accepted and echoes the stored state" \
 	"$(grep -q '"hasApiKey"' <<<"$put_json" && echo 1 || echo 0)"
 echo "        -> $put_json"
 
+# The shield needs two halves that are registered in different places and
+# neither one complains when the other is missing. Check both.
+files_page="$(curl -sS -b "$JAR" "$NC_URL/apps/files/")"
+check "the Files app loads the shield bundle" 	"$(grep -q 'files-shield' <<<"$files_page" && echo 1 || echo 0)"
+
+shield_js="$(curl -sS -b "$JAR" "$NC_URL/custom_apps/sealdoc/js/files-shield.js" 2>/dev/null)"
+if [ "${#shield_js}" -lt 1000 ]; then
+	shield_js="$(curl -sS -b "$JAR" "$NC_URL/apps/sealdoc/js/files-shield.js" 2>/dev/null)"
+fi
+check "the shield bundle is served and is a real build" 	"$([ "${#shield_js}" -gt 100000 ] && echo 1 || echo 0)"
+check "the bundle asks for the sealdoc DAV properties" 	"$(grep -q 'sealdoc:sealed' <<<"$shield_js" && echo 1 || echo 0)"
+
+# And the server half: without this the property is never contributed and the
+# shield silently never appears, with nothing in any log to say why.
+dav="$(curl -sS -u "$NC_USER:$NC_PASS" -X PROPFIND -H 'Depth: 0' 	-H 'Content-Type: application/xml' 	--data '<?xml version="1.0"?><d:propfind xmlns:d="DAV:" xmlns:s="http://sealdoc.eu/ns"><d:prop><s:sealed/></d:prop></d:propfind>' 	"$NC_URL/remote.php/dav/files/$NC_USER/" 2>/dev/null)"
+check "the server answers the sealdoc:sealed property over WebDAV" 	"$(grep -q 'sealdoc:sealed' <<<"$dav" && echo 1 || echo 0)"
+
 echo
 echo "$pass passed, $fail failed"
 exit $((fail > 0 ? 1 : 0))
