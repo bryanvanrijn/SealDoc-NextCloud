@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace OCA\SealDoc\Controller;
 
+use OCA\SealDoc\Service\ConfigState;
 use OCA\SealDoc\Service\SealDocClient;
 use OCP\AppFramework\Controller;
 use OCP\AppFramework\Http\Attribute\AuthorizedAdminSetting;
@@ -16,6 +17,7 @@ class ConfigController extends Controller {
 		string $appName,
 		IRequest $request,
 		private SealDocClient $client,
+		private ConfigState $state,
 	) {
 		parent::__construct($appName, $request);
 	}
@@ -38,13 +40,17 @@ class ConfigController extends Controller {
 		if ($apiKey !== null) {
 			$this->client->setApiKey($apiKey);
 		}
+		// Was missing, and silently. The form sent the value, nothing read it,
+		// and the field came back empty on the next load while the column sat
+		// there empty too. A setting that accepts input and discards it is
+		// worse than one that is not offered at all.
+		if ($retentionLabel !== null) {
+			$this->client->setRetentionLabel($retentionLabel);
+		}
 
-		return new DataResponse([
-			'baseUrl' => $this->client->getBaseUrl(),
-			'hasApiKey' => $this->client->hasApiKey(),
-			'storeEvidence' => $this->client->isStoringEvidence(),
-			'evidenceFolder' => $this->client->getEvidenceFolder(),
-		]);
+		// The same shape the page load renders, so a save can never hand the
+		// form a different set of fields than it was built from.
+		return new DataResponse($this->state->get());
 	}
 
 	#[AuthorizedAdminSetting(settings: Admin::class)]

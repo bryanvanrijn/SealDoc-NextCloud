@@ -12,20 +12,18 @@
  * anything. It doubles as the cheapest diagnostic there is: if this entry
  * appears in the row menu, this bundle loaded.
  *
- * Two halves have to agree for the shield. The server contributes the property
- * (lib/Dav/SealedPlugin.php) and the client has to ask for it, which is what
- * registerDavProperty does below. Register only one and the shield silently
- * never appears, with nothing in any log to say why.
+ * Three parts have to agree for the shield. The server contributes the
+ * property (lib/Dav/SealedPlugin.php), the client has to ask for it in time
+ * (js/dav-init.js, and read the comment there before moving it back here) and
+ * this file draws it. Break any one of them and the shield silently never
+ * appears, with nothing in any log to say why.
  */
-import { registerFileAction, FileAction, registerDavProperty } from '@nextcloud/files'
+import { registerFileAction, FileAction } from '@nextcloud/files'
 import { translate as t } from '@nextcloud/l10n'
 import { generateUrl } from '@nextcloud/router'
 import axios from '@nextcloud/axios'
 
 const NS = 'http://sealdoc.eu/ns'
-
-registerDavProperty('sealdoc:sealed', { sealdoc: NS })
-registerDavProperty('sealdoc:evidence-file-id', { sealdoc: NS })
 
 /**
  * Read one of our properties off a node.
@@ -96,10 +94,12 @@ registerFileAction(new FileAction({
 			if (data.status === 'already_sealed') {
 				toast('info', t('sealdoc', 'This document was already sealed.'))
 			} else {
-				// Honest about the delay rather than pretending it is done.
-				// Conversion and timestamping run in the background, so the
-				// sealed file appears once the next cron run picks the job up.
-				toast('success', t('sealdoc', 'Queued for sealing. The sealed document appears next to the original shortly.'))
+				// Honest about the delay rather than pretending it is done, and
+				// it does not say "shortly". On an instance running background
+				// jobs in ajax mode, which is Nextcloud's default, "shortly"
+				// turned out to mean twenty-five minutes and counting. The Seal
+				// panel says whether this server runs them on a schedule.
+				toast('success', t('sealdoc', 'Queued for sealing. The sealed document appears next to the original once the server has run the job.'))
 			}
 			return true
 		} catch (e) {

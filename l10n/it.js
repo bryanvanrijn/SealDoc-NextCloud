@@ -23,9 +23,19 @@ OC.L10N.register(
         "Sealed: open the evidence": "Sigillato: apri la prova",
         "This document has been sealed. Open its evidence pack.": "Questo documento è stato sigillato. Apri il suo pacchetto di prova.",
         "This document was already sealed.": "Questo documento era già sigillato.",
-        "Queued for sealing. The sealed document appears next to the original shortly.": "In coda per la sigillatura. Il documento sigillato apparirà a breve accanto all’originale.",
         "SealDoc is not configured yet. An administrator has to set the server URL and API key.": "SealDoc non è ancora configurato. Occorre impostare l’URL del server e la chiave API.",
         "Could not queue this document for sealing.": "Impossibile mettere in coda questo documento.",
-        "This document is sealed, but no evidence pack was stored for it.": "Questo documento è sigillato, ma non è stato memorizzato alcun pacchetto di prova."
+        "This document is sealed, but no evidence pack was stored for it.": "Questo documento è sigillato, ma non è stato memorizzato alcun pacchetto di prova.",
+        "Queued for sealing": "In coda per la sigillatura",
+        "Sealing runs as a background job on the server. The sealed document and its evidence pack appear next to the original once it has run.": "La sigillatura viene eseguita come processo in background sul server. Il documento sigillato e il suo pacchetto di prove compaiono accanto all’originale non appena il processo viene eseguito.",
+        "This server does not run background jobs on a schedule, so a queued document can wait a long time or never be picked up. An administrator can change this under Administration settings, Basic settings.": "Questo server non esegue i processi in background secondo una pianificazione, quindi un documento in coda può attendere a lungo o non essere mai elaborato. Un amministratore può modificarlo in Impostazioni di amministrazione, Impostazioni di base.",
+        "Background jobs": "Processi in background",
+        "This server runs background jobs in \"{mode}\" mode.": "Questo server esegue i processi in background in modalità «{mode}».",
+        "%n document is waiting to be sealed.": [
+            "%n documento è in attesa di sigillatura.",
+            "%n documenti sono in attesa di sigillatura."
+        ],
+        "Only \"Cron\" runs on a schedule. In any other mode a queued document is only picked up while somebody has a page open, so sealing can take a long time or not happen at all. Change this under Administration settings, Basic settings.": "Solo «Cron» segue una pianificazione. In qualsiasi altra modalità un documento in coda viene elaborato solo finché qualcuno ha una pagina aperta, quindi la sigillatura può richiedere molto tempo o non avvenire affatto. Modificalo in Impostazioni di amministrazione, Impostazioni di base.",
+        "Queued for sealing. The sealed document appears next to the original once the server has run the job.": "In coda per la sigillatura. Il documento sigillato compare accanto all’originale non appena il server esegue il processo."
     },
     "nplurals=2; plural=(n != 1);");

@@ -22,10 +22,21 @@
         "Sealed: open the evidence": "Zapečetěno: otevřít důkaz",
         "This document has been sealed. Open its evidence pack.": "Tento dokument byl zapečetěn. Otevřete jeho důkazní balíček.",
         "This document was already sealed.": "Tento dokument již byl zapečetěn.",
-        "Queued for sealing. The sealed document appears next to the original shortly.": "Zařazeno k zapečetění. Zapečetěný dokument se zakrátko objeví vedle originálu.",
         "SealDoc is not configured yet. An administrator has to set the server URL and API key.": "SealDoc zatím není nastaven. Je třeba zadat adresu serveru a klíč API.",
         "Could not queue this document for sealing.": "Dokument se nepodařilo zařadit do fronty.",
-        "This document is sealed, but no evidence pack was stored for it.": "Tento dokument je zapečetěn, ale nebyl pro něj uložen důkazní balíček."
+        "This document is sealed, but no evidence pack was stored for it.": "Tento dokument je zapečetěn, ale nebyl pro něj uložen důkazní balíček.",
+        "Queued for sealing": "Ve frontě k zapečetění",
+        "Sealing runs as a background job on the server. The sealed document and its evidence pack appear next to the original once it has run.": "Pečetění probíhá jako úloha na pozadí na serveru. Zapečetěný dokument a jeho balíček důkazů se objeví vedle originálu, jakmile úloha proběhne.",
+        "This server does not run background jobs on a schedule, so a queued document can wait a long time or never be picked up. An administrator can change this under Administration settings, Basic settings.": "Tento server nespouští úlohy na pozadí podle plánu, takže dokument ve frontě může dlouho čekat nebo nemusí být zpracován nikdy. Správce to může změnit v Nastavení správy, Základní nastavení.",
+        "Background jobs": "Úloby na pozadí",
+        "This server runs background jobs in \"{mode}\" mode.": "Tento server spouští úlohy na pozadí v režimu „{mode}“.",
+        "%n document is waiting to be sealed.": [
+            "%n dokument čeká na zapečetění.",
+            "%n dokumenty čekají na zapečetění.",
+            "%n dokumentů čeká na zapečetění."
+        ],
+        "Only \"Cron\" runs on a schedule. In any other mode a queued document is only picked up while somebody has a page open, so sealing can take a long time or not happen at all. Change this under Administration settings, Basic settings.": "Pouze „Cron“ běží podle plánu. V jakémkoli jiném režimu se dokument z fronty zpracuje jen tehdy, když má někdo otevřenou stránku, takže pečetění může trvat dlouho nebo neproběhne vůbec. Změňte to v Nastavení správy, Základní nastavení.",
+        "Queued for sealing. The sealed document appears next to the original once the server has run the job.": "Ve frontě k zapečetění. Zapečetěný dokument se objeví vedle originálu, jakmile server úlohu provede."
     },
     "pluralForm": "nplurals=3; plural=(n==1) ? 0 : (n>=2 && n<=4) ? 1 : 2;"
 }

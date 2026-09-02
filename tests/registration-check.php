@@ -105,10 +105,35 @@ try {
 // 7. The evidence pack is off by default and lands somewhere sane when on.
 try {
 	$c = $server->get(\OCA\SealDoc\Service\SealDocClient::class);
-	check('evidence storage is off until switched on', $c->isStoringEvidence() === false);
+	// The default, not the current value. This used to assert that storage was
+	// off, which fails on any instance where an administrator switched it on:
+	// a test that goes red on a correctly configured server teaches people to
+	// ignore it, which costs more than the test was ever worth.
+	$stored = $server->get(\OCP\IAppConfig::class)->getValueString('sealdoc', 'store_evidence', 'unset');
+	check('evidence storage defaults to off when never set',
+		$stored !== 'unset' || $c->isStoringEvidence() === false);
 	check('evidence folder is absolute', str_starts_with($c->getEvidenceFolder(), '/'));
 } catch (\Throwable $e) {
 	check('evidence settings: ' . $e->getMessage(), false);
+}
+
+// 8. The settings screen is built from one shape.
+//
+// The page load and the save response used to assemble their payload
+// separately. They drifted: the form grew a retention field, the save kept
+// answering with the older four keys, and the value came back empty on the
+// next load while sitting correctly in the database. Nothing failed, nothing
+// was logged, and the setting simply did not appear to work.
+try {
+	$state = $server->get(\OCA\SealDoc\Service\ConfigState::class)->get();
+	foreach (['baseUrl', 'hasApiKey', 'storeEvidence', 'evidenceFolder', 'retentionLabel', 'backgroundJobs'] as $key) {
+		check('settings state carries ' . $key, array_key_exists($key, $state));
+	}
+	check('background job mode is one Nextcloud recognises',
+		in_array($state['backgroundJobs']['mode'] ?? '', ['cron', 'webcron', 'ajax'], true));
+	check('waiting seal count is a number', is_int($state['backgroundJobs']['waiting'] ?? null));
+} catch (\Throwable $e) {
+	check('settings state: ' . $e->getMessage(), false);
 }
 
 echo "\n" . ($fail === 0 ? "all checks passed\n" : "$fail check(s) FAILED\n");

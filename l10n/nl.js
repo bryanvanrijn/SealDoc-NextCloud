@@ -23,9 +23,19 @@ OC.L10N.register(
         "Sealed: open the evidence": "Verzegeld: bewijs openen",
         "This document has been sealed. Open its evidence pack.": "Dit document is verzegeld. Open het bewijspakket.",
         "This document was already sealed.": "Dit document was al verzegeld.",
-        "Queued for sealing. The sealed document appears next to the original shortly.": "In de wachtrij gezet. Het verzegelde document verschijnt zo naast het origineel.",
         "SealDoc is not configured yet. An administrator has to set the server URL and API key.": "SealDoc is nog niet ingesteld. Een beheerder moet de server-URL en API-sleutel invullen.",
         "Could not queue this document for sealing.": "Kon dit document niet in de wachtrij zetten.",
-        "This document is sealed, but no evidence pack was stored for it.": "Dit document is verzegeld, maar er is geen bewijspakket voor opgeslagen."
+        "This document is sealed, but no evidence pack was stored for it.": "Dit document is verzegeld, maar er is geen bewijspakket voor opgeslagen.",
+        "Queued for sealing": "In de wachtrij voor verzegeling",
+        "Sealing runs as a background job on the server. The sealed document and its evidence pack appear next to the original once it has run.": "Verzegelen gebeurt als achtergrondtaak op de server. Het verzegelde document en het bewijspakket verschijnen naast het origineel zodra die taak heeft gedraaid.",
+        "This server does not run background jobs on a schedule, so a queued document can wait a long time or never be picked up. An administrator can change this under Administration settings, Basic settings.": "Deze server draait achtergrondtaken niet volgens een schema. Een document in de wachtrij kan daardoor lang wachten of nooit opgepakt worden. Een beheerder kan dit wijzigen bij Beheerinstellingen, Basisinstellingen.",
+        "Background jobs": "Achtergrondtaken",
+        "This server runs background jobs in \"{mode}\" mode.": "Deze server draait achtergrondtaken in de modus \"{mode}\".",
+        "%n document is waiting to be sealed.": [
+            "%n document wacht op verzegeling.",
+            "%n documenten wachten op verzegeling."
+        ],
+        "Only \"Cron\" runs on a schedule. In any other mode a queued document is only picked up while somebody has a page open, so sealing can take a long time or not happen at all. Change this under Administration settings, Basic settings.": "Alleen \"Cron\" draait volgens een schema. In elke andere modus wordt een document in de wachtrij alleen opgepakt zolang iemand een pagina open heeft, waardoor verzegelen lang kan duren of helemaal niet gebeurt. Wijzig dit bij Beheerinstellingen, Basisinstellingen.",
+        "Queued for sealing. The sealed document appears next to the original once the server has run the job.": "In de wachtrij voor verzegeling. Het verzegelde document verschijnt naast het origineel zodra de server de taak heeft uitgevoerd."
     },
     "nplurals=2; plural=(n != 1);");

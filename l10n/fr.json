@@ -22,10 +22,20 @@
         "Sealed: open the evidence": "Scellé : ouvrir la preuve",
         "This document has been sealed. Open its evidence pack.": "Ce document a été scellé. Ouvrez son dossier de preuve.",
         "This document was already sealed.": "Ce document était déjà scellé.",
-        "Queued for sealing. The sealed document appears next to the original shortly.": "Mis en file pour scellement. Le document scellé apparaîtra bientôt à côté de l’original.",
         "SealDoc is not configured yet. An administrator has to set the server URL and API key.": "SealDoc n’est pas encore configuré. L’URL du serveur et la clé d’API doivent être renseignées.",
         "Could not queue this document for sealing.": "Impossible de mettre ce document en file d’attente.",
-        "This document is sealed, but no evidence pack was stored for it.": "Ce document est scellé, mais aucun dossier de preuve n’a été enregistré."
+        "This document is sealed, but no evidence pack was stored for it.": "Ce document est scellé, mais aucun dossier de preuve n’a été enregistré.",
+        "Queued for sealing": "En file d’attente pour le scellement",
+        "Sealing runs as a background job on the server. The sealed document and its evidence pack appear next to the original once it has run.": "Le scellement s’exécute comme tâche de fond sur le serveur. Le document scellé et son dossier de preuve apparaissent à côté de l’original une fois la tâche exécutée.",
+        "This server does not run background jobs on a schedule, so a queued document can wait a long time or never be picked up. An administrator can change this under Administration settings, Basic settings.": "Ce serveur n’exécute pas les tâches de fond selon un calendrier. Un document en file d’attente peut donc attendre longtemps, voire ne jamais être traité. Un administrateur peut modifier cela dans Paramètres d’administration, Paramètres de base.",
+        "Background jobs": "Tâches de fond",
+        "This server runs background jobs in \"{mode}\" mode.": "Ce serveur exécute les tâches de fond en mode « {mode} ».",
+        "%n document is waiting to be sealed.": [
+            "%n document attend d’être scellé.",
+            "%n documents attendent d’être scellés."
+        ],
+        "Only \"Cron\" runs on a schedule. In any other mode a queued document is only picked up while somebody has a page open, so sealing can take a long time or not happen at all. Change this under Administration settings, Basic settings.": "Seul « Cron » suit un calendrier. Dans tout autre mode, un document en file d’attente n’est traité que tant que quelqu’un a une page ouverte ; le scellement peut donc prendre longtemps ou ne jamais avoir lieu. Modifiez cela dans Paramètres d’administration, Paramètres de base.",
+        "Queued for sealing. The sealed document appears next to the original once the server has run the job.": "En file d’attente pour le scellement. Le document scellé apparaît à côté de l’original une fois que le serveur a exécuté la tâche."
     },
     "pluralForm": "nplurals=2; plural=(n > 1);"
 }

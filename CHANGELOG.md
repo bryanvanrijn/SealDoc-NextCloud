@@ -3,6 +3,59 @@
 All notable changes to this app are documented here.
 The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
+## [0.3.3] - 2026-09-02
+
+### Fixed
+
+- **The shield stopped drawing after a page refresh.** The Files app builds the PROPFIND for a
+  directory listing before scripts added through `LoadAdditionalScriptsEvent` run, so
+  `registerDavProperty` arrived too late and every node came back without the property. Registration
+  moved to `js/dav-init.js`, loaded through `Util::addInitScript`, which runs ahead of the Files
+  bundles. See the comment in that file before moving it back.
+
+  This was intermittent in the cruellest way. Navigating inside the Files app asked for the
+  properties again and the shield appeared; a refresh put it back to the frozen listing and it
+  vanished. "It worked yesterday" and "it is broken now" were both true statements about the same
+  code, and nothing on the server side was wrong: the Sabre plugin was registered, the property was
+  computed, and a PROPFIND issued by hand returned `sealed=true` for exactly the right files.
+
+- **The retention policy field accepted input and threw it away.** The form sent the value, the
+  controller never read it, and the field came back empty on the next load. The page load and the
+  save response also assembled their payload separately, which is how they drifted apart in the
+  first place; both now go through one `ConfigState`.
+
+### Added
+
+- **A background jobs section in the admin settings.** It reports which mode this server runs, how
+  many documents are waiting, and warns in red when the mode is not Cron.
+
+  Sealing is a background job, and Nextcloud's default is AJAX, which advances at most one job per
+  page load. Two documents queued during testing sat untouched for twenty-five minutes with the file
+  list open the whole time. From the outside that is exactly what a broken app looks like: the click
+  reports success, the file never appears, and nothing is logged because nothing ran. This app
+  cannot fix an administrator's cron. It can refuse to let it be a mystery.
+
+- **A queued state in the Seal panel.** "Waiting" and "never sealed" are different answers and the
+  panel now tells them apart, with the same warning when the server has no schedule to run them on.
+
+- `tests/browser-check.cjs`, which drives a real browser and asserts the things only a browser can
+  see: that the listing asks for the properties, that both file actions and the sidebar tab are
+  registered, and that the shield is drawn on a sealed file and not on an unsealed one. Every
+  client-side fault this app has had was green in the PHP and HTTP checks.
+
+- Seven translations for the new strings, including plurals with the right number of forms for
+  Polish and Czech.
+
+### Changed
+
+- The toast no longer promises the sealed document "shortly". On a default instance that turned out
+  to mean twenty-five minutes and counting.
+
+- `tests/registration-check.php` no longer asserts that evidence storage is switched off. That
+  failed on any instance where an administrator had switched it on, and a check that goes red on a
+  correctly configured server teaches people to ignore it. It now tests the default instead, and
+  gained checks for the settings payload and the job queue.
+
 ## [0.3.0] - 2026-09-02
 
 ### Added

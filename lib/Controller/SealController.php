@@ -6,6 +6,7 @@ namespace OCA\SealDoc\Controller;
 
 use OCA\SealDoc\BackgroundJob\SealJob;
 use OCA\SealDoc\Db\SealMapper;
+use OCA\SealDoc\Service\QueueStatus;
 use OCA\SealDoc\Service\SealDocClient;
 use OCP\AppFramework\Controller;
 use OCP\AppFramework\Http;
@@ -35,6 +36,7 @@ class SealController extends Controller {
 		private IJobList $jobList,
 		private SealMapper $mapper,
 		private SealDocClient $client,
+		private QueueStatus $queue,
 	) {
 		parent::__construct($appName, $request);
 	}
@@ -57,7 +59,16 @@ class SealController extends Controller {
 
 		$seal = $this->mapper->findByAnyFileId($fileId);
 		if ($seal === null) {
-			return new DataResponse(['sealed' => false]);
+			// Not sealed and waiting are different answers, and telling them
+			// apart is the whole difference between "nothing happened" and
+			// "this is on its way". A queued seal that sits for half an hour
+			// because the instance runs background jobs in ajax mode looked
+			// exactly like a broken app until the panel said so.
+			return new DataResponse([
+				'sealed' => false,
+				'pending' => $this->queue->isWaitingFor($fileId, $user->getUID()),
+				'backgroundJobsReliable' => $this->queue->isReliable(),
+			]);
 		}
 		if ($seal->getUserId() !== $user->getUID()) {
 			// Do not leak that a seal exists to somebody who only has the file

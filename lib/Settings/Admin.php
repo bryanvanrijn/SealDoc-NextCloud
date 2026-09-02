@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace OCA\SealDoc\Settings;
 
 use OCA\SealDoc\AppInfo\Application;
-use OCA\SealDoc\Service\SealDocClient;
+use OCA\SealDoc\Service\ConfigState;
 use OCP\AppFramework\Http\TemplateResponse;
 use OCP\AppFramework\Services\IInitialState;
 use OCP\Settings\IDelegatedSettings;
@@ -14,7 +14,7 @@ use OCP\Util;
 class Admin implements IDelegatedSettings {
 	public function __construct(
 		private IInitialState $initialState,
-		private SealDocClient $client,
+		private ConfigState $state,
 	) {
 	}
 
@@ -23,12 +23,7 @@ class Admin implements IDelegatedSettings {
 		// set. An administrator does not need to read it back, and a settings
 		// page that renders a live credential is a page that ends up in a
 		// screenshot.
-		$this->initialState->provideInitialState('config', [
-			'baseUrl' => $this->client->getBaseUrl(),
-			'hasApiKey' => $this->client->hasApiKey(),
-			'storeEvidence' => $this->client->isStoringEvidence(),
-			'evidenceFolder' => $this->client->getEvidenceFolder(),
-		]);
+		$this->initialState->provideInitialState('config', $this->state->get());
 
 		Util::addScript(Application::APP_ID, 'admin');
 		Util::addStyle(Application::APP_ID, 'admin');

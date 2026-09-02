@@ -46,7 +46,22 @@ function row(label, value, note) {
 
 function render(el, info) {
 	if (!info.sealed) {
-		el.innerHTML = `<p class="sealdoc-empty">${esc(t('sealdoc', 'This document has not been sealed.'))}</p>`
+		// Waiting and never-sealed are different answers. Collapsing them is
+		// how a queued document that sat for half an hour, on an instance
+		// running background jobs in ajax mode, looked exactly like an app
+		// that had done nothing at all.
+		if (!info.pending) {
+			el.innerHTML = `<p class="sealdoc-empty">${esc(t('sealdoc', 'This document has not been sealed.'))}</p>`
+			return
+		}
+		const waiting = [
+			`<p class="sealdoc-when">${esc(t('sealdoc', 'Queued for sealing'))}</p>`,
+			`<p class="sealdoc-fineprint">${esc(t('sealdoc', 'Sealing runs as a background job on the server. The sealed document and its evidence pack appear next to the original once it has run.'))}</p>`,
+		]
+		if (info.backgroundJobsReliable === false) {
+			waiting.push(`<p class="sealdoc-warning">${esc(t('sealdoc', 'This server does not run background jobs on a schedule, so a queued document can wait a long time or never be picked up. An administrator can change this under Administration settings, Basic settings.'))}</p>`)
+		}
+		el.innerHTML = waiting.join('')
 		return
 	}
 

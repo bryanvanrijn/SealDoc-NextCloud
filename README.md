@@ -98,11 +98,67 @@ sudo -u www-data php custom_apps/sealdoc/tests/registration-check.php
 all checks passed
 ```
 
+There is a second check for the half that only a browser can see. Every client-side fault this app
+has had was invisible to the PHP and HTTP checks: a settings screen that called `axios`, which is
+not a global in Nextcloud 30, so no request ever left the page; a menu entry hidden on every row by
+an `instanceof` that quietly returned false; and a shield that stopped drawing after a refresh
+because the Files app had already asked for its listing before the app registered its WebDAV
+properties.
+
+```bash
+npm i -D playwright
+NC_URL=https://cloud.example.test NC_USER=admin NC_PASS=... NC_SEALED_FILE=invoice-sealed.pdf node tests/browser-check.cjs
+```
+
+```
+  ok    logs in
+  ok    the Files listing asks for the SealDoc properties
+  ok    both DAV properties are registered
+  ok    the namespace is registered
+  ok    the seal action is registered
+  ok    the shield action is registered
+  ok    the Seal sidebar tab is registered
+  ok    the shield is drawn on invoice-sealed.pdf
+  ok    no shield on Readme.md
+  ok    no uncaught errors on the page
+```
+
+`NC_URL` has to be the URL the instance considers its own. If `overwriteprotocol` is `https`,
+Nextcloud marks the session cookie Secure and a browser stores nothing over plain http: the login
+form posts, succeeds, and lands you back on the login page with no session and no error.
+
+## Background jobs
+
+**Sealing only happens when Nextcloud runs background jobs.** Nextcloud's default is AJAX, which
+advances at most one job per page load, competing with everything else in the instance. Two
+documents queued during testing sat untouched for twenty-five minutes with the file list open the
+whole time.
+
+From the outside that is indistinguishable from a broken app. The click reports success, the file
+never appears, and nothing is logged because nothing ran. So the app says so: the admin settings
+report which mode this server uses and how many documents are waiting, the Seal panel says
+"Queued for sealing" instead of "not sealed", and both warn when the mode is not Cron.
+
+Set **Cron** under Administration settings, Basic settings, and give it something to run. In Docker
+that is a second container on the same volumes:
+
+```yaml
+  cron:
+    image: nextcloud:30
+    restart: always
+    volumes:
+      - nextcloud:/var/www/html
+    entrypoint: /cron.sh
+    depends_on:
+      - db
+```
+
 ## Requirements
 
 - Nextcloud 29 to 31
 - PHP 8.1 or newer
 - A reachable SealDoc instance and an API key
+- Background jobs on Cron. See above; on AJAX the app queues work that may never run
 
 ## Licence
 

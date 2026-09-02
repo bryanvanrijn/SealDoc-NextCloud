@@ -22,10 +22,20 @@
         "Sealed: open the evidence": "Versiegelt: Nachweis öffnen",
         "This document has been sealed. Open its evidence pack.": "Dieses Dokument wurde versiegelt. Nachweispaket öffnen.",
         "This document was already sealed.": "Dieses Dokument war bereits versiegelt.",
-        "Queued for sealing. The sealed document appears next to the original shortly.": "Zum Versiegeln eingereiht. Das versiegelte Dokument erscheint in Kürze neben dem Original.",
         "SealDoc is not configured yet. An administrator has to set the server URL and API key.": "SealDoc ist noch nicht konfiguriert. Server-URL und API-Schlüssel müssen hinterlegt werden.",
         "Could not queue this document for sealing.": "Dieses Dokument konnte nicht eingereiht werden.",
-        "This document is sealed, but no evidence pack was stored for it.": "Dieses Dokument ist versiegelt, es wurde jedoch kein Nachweispaket gespeichert."
+        "This document is sealed, but no evidence pack was stored for it.": "Dieses Dokument ist versiegelt, es wurde jedoch kein Nachweispaket gespeichert.",
+        "Queued for sealing": "Zur Versiegelung eingereiht",
+        "Sealing runs as a background job on the server. The sealed document and its evidence pack appear next to the original once it has run.": "Die Versiegelung läuft als Hintergrundauftrag auf dem Server. Das versiegelte Dokument und sein Nachweispaket erscheinen neben dem Original, sobald der Auftrag ausgeführt wurde.",
+        "This server does not run background jobs on a schedule, so a queued document can wait a long time or never be picked up. An administrator can change this under Administration settings, Basic settings.": "Dieser Server führt Hintergrundaufträge nicht nach einem Zeitplan aus. Ein eingereihtes Dokument kann daher lange warten oder nie verarbeitet werden. Eine Administratorin oder ein Administrator kann das unter Verwaltungseinstellungen, Grundeinstellungen ändern.",
+        "Background jobs": "Hintergrundaufträge",
+        "This server runs background jobs in \"{mode}\" mode.": "Dieser Server führt Hintergrundaufträge im Modus „{mode}“ aus.",
+        "%n document is waiting to be sealed.": [
+            "%n Dokument wartet auf die Versiegelung.",
+            "%n Dokumente warten auf die Versiegelung."
+        ],
+        "Only \"Cron\" runs on a schedule. In any other mode a queued document is only picked up while somebody has a page open, so sealing can take a long time or not happen at all. Change this under Administration settings, Basic settings.": "Nur „Cron“ läuft nach einem Zeitplan. In jedem anderen Modus wird ein eingereihtes Dokument nur verarbeitet, solange jemand eine Seite geöffnet hat; die Versiegelung kann dadurch lange dauern oder ganz ausbleiben. Ändern Sie dies unter Verwaltungseinstellungen, Grundeinstellungen.",
+        "Queued for sealing. The sealed document appears next to the original once the server has run the job.": "Zur Versiegelung eingereiht. Das versiegelte Dokument erscheint neben dem Original, sobald der Server den Auftrag ausgeführt hat."
     },
     "pluralForm": "nplurals=2; plural=(n != 1);"
 }

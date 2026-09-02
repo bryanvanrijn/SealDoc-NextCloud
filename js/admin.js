@@ -22,6 +22,9 @@
 	const folder = document.getElementById('sealdoc-evidence-folder')
 	const retention = document.getElementById('sealdoc-retention')
 	const keyState = document.getElementById('sealdoc-key-state')
+	const jobs = document.getElementById('sealdoc-jobs')
+	const jobsMode = document.getElementById('sealdoc-jobs-mode')
+	const jobsWarning = document.getElementById('sealdoc-jobs-warning')
 	const result = document.getElementById('sealdoc-result')
 
 	url.value = state.baseUrl || ''
@@ -29,9 +32,35 @@
 	folder.value = state.evidenceFolder || ''
 	retention.value = state.retentionLabel || ''
 	renderKeyState(state.hasApiKey)
+	renderJobs(state.backgroundJobs)
 
 	function renderKeyState(has) {
 		keyState.textContent = has ? t('sealdoc', 'A key is stored') : t('sealdoc', 'No key stored')
+	}
+
+	/**
+	 * Says out loud whether a queued seal will ever run.
+	 *
+	 * Nextcloud's default is "ajax", which advances at most one background job
+	 * per page load. Two documents queued during testing sat untouched for
+	 * twenty-five minutes with the file list open the whole time, and from the
+	 * outside that is indistinguishable from a broken app: the click reports
+	 * success, the file never appears, and nothing is logged because nothing
+	 * ran. This app cannot fix an administrator's cron. It can refuse to let
+	 * that be a mystery.
+	 */
+	function renderJobs(info) {
+		if (!info || !jobs) {
+			return
+		}
+		jobs.hidden = false
+		const waiting = Number(info.waiting || 0)
+		jobsMode.textContent = t('sealdoc', 'This server runs background jobs in "{mode}" mode.', { mode: info.mode })
+			+ (waiting > 0 ? ' ' + n('sealdoc', '%n document is waiting to be sealed.', '%n documents are waiting to be sealed.', waiting) : '')
+		jobsWarning.hidden = !!info.reliable
+		if (!info.reliable) {
+			jobsWarning.textContent = t('sealdoc', 'Only "Cron" runs on a schedule. In any other mode a queued document is only picked up while somebody has a page open, so sealing can take a long time or not happen at all. Change this under Administration settings, Basic settings.')
+		}
 	}
 
 	function say(message) {
@@ -78,6 +107,7 @@
 				retention.value = data.retentionLabel || ''
 				store.checked = !!data.storeEvidence
 				renderKeyState(data.hasApiKey)
+				renderJobs(data.backgroundJobs)
 				say(t('sealdoc', 'Saved'))
 			})
 			.catch(function (e) {

@@ -45,6 +45,12 @@ declare(strict_types=1);
 		<span id="sealdoc-result" class="sealdoc-muted"></span>
 	</p>
 
+	<div id="sealdoc-jobs" class="sealdoc-jobs" hidden>
+		<h3><?php p($l->t('Background jobs')); ?></h3>
+		<p id="sealdoc-jobs-mode" class="sealdoc-muted"></p>
+		<p id="sealdoc-jobs-warning" class="sealdoc-alert" hidden></p>
+	</div>
+
 	<p class="settings-hint">
 		<?php p($l->t('Sealing runs as a Flow action. Set up a rule under Administration settings, Flow: for example, seal every file created in a specific folder. Sealed files are written next to the original and appear a little later, because conversion and timestamping happen in the background.')); ?>
 	</p>

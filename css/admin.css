@@ -36,3 +36,14 @@
 .sealdoc-tab .sealdoc-fineprint { color: var(--color-text-maxcontrast); font-size: 90%; margin-top: 4px; }
 .sealdoc-tab .sealdoc-hash { display: block; word-break: break-all; font-size: 85%; }
 .sealdoc-tab .sealdoc-empty { color: var(--color-text-maxcontrast); }
+
+/* The background-jobs block. Deliberately plain: it is a status report, not a
+   feature, and it should read as one. */
+#sealdoc-admin .sealdoc-jobs {
+	margin-top: 1.5em;
+}
+
+#sealdoc-admin .sealdoc-alert {
+	color: var(--color-error, #c9302c);
+	max-width: 44em;
+}

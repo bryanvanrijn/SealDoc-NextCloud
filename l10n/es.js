@@ -23,9 +23,19 @@ OC.L10N.register(
         "Sealed: open the evidence": "Sellado: abrir la prueba",
         "This document has been sealed. Open its evidence pack.": "Este documento ha sido sellado. Abra su paquete de prueba.",
         "This document was already sealed.": "Este documento ya estaba sellado.",
-        "Queued for sealing. The sealed document appears next to the original shortly.": "En cola para sellar. El documento sellado aparecerá en breve junto al original.",
         "SealDoc is not configured yet. An administrator has to set the server URL and API key.": "SealDoc aún no está configurado. Hay que indicar la URL del servidor y la clave de API.",
         "Could not queue this document for sealing.": "No se pudo poner este documento en cola.",
-        "This document is sealed, but no evidence pack was stored for it.": "Este documento está sellado, pero no se almacenó ningún paquete de prueba."
+        "This document is sealed, but no evidence pack was stored for it.": "Este documento está sellado, pero no se almacenó ningún paquete de prueba.",
+        "Queued for sealing": "En cola para el sellado",
+        "Sealing runs as a background job on the server. The sealed document and its evidence pack appear next to the original once it has run.": "El sellado se ejecuta como tarea en segundo plano en el servidor. El documento sellado y su paquete de evidencias aparecen junto al original en cuanto se ejecuta.",
+        "This server does not run background jobs on a schedule, so a queued document can wait a long time or never be picked up. An administrator can change this under Administration settings, Basic settings.": "Este servidor no ejecuta las tareas en segundo plano según una programación, por lo que un documento en cola puede esperar mucho tiempo o no procesarse nunca. Un administrador puede cambiarlo en Ajustes de administración, Ajustes básicos.",
+        "Background jobs": "Tareas en segundo plano",
+        "This server runs background jobs in \"{mode}\" mode.": "Este servidor ejecuta las tareas en segundo plano en modo «{mode}».",
+        "%n document is waiting to be sealed.": [
+            "%n documento espera a ser sellado.",
+            "%n documentos esperan a ser sellados."
+        ],
+        "Only \"Cron\" runs on a schedule. In any other mode a queued document is only picked up while somebody has a page open, so sealing can take a long time or not happen at all. Change this under Administration settings, Basic settings.": "Solo «Cron» sigue una programación. En cualquier otro modo, un documento en cola solo se procesa mientras alguien tiene una página abierta, por lo que el sellado puede tardar mucho o no ocurrir. Cámbielo en Ajustes de administración, Ajustes básicos.",
+        "Queued for sealing. The sealed document appears next to the original once the server has run the job.": "En cola para el sellado. El documento sellado aparece junto al original en cuanto el servidor ejecuta la tarea."
     },
     "nplurals=2; plural=(n != 1);");

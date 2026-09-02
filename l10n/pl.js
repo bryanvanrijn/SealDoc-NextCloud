@@ -23,9 +23,20 @@ OC.L10N.register(
         "Sealed: open the evidence": "Zapieczętowane: otwórz dowód",
         "This document has been sealed. Open its evidence pack.": "Ten dokument został zapieczętowany. Otwórz jego pakiet dowodowy.",
         "This document was already sealed.": "Ten dokument był już zapieczętowany.",
-        "Queued for sealing. The sealed document appears next to the original shortly.": "W kolejce do zapieczętowania. Zapieczętowany dokument pojawi się wkrótce obok oryginału.",
         "SealDoc is not configured yet. An administrator has to set the server URL and API key.": "SealDoc nie jest jeszcze skonfigurowany. Trzeba podać adres serwera i klucz API.",
         "Could not queue this document for sealing.": "Nie udało się dodać dokumentu do kolejki.",
-        "This document is sealed, but no evidence pack was stored for it.": "Ten dokument jest zapieczętowany, ale nie zapisano dla niego pakietu dowodowego."
+        "This document is sealed, but no evidence pack was stored for it.": "Ten dokument jest zapieczętowany, ale nie zapisano dla niego pakietu dowodowego.",
+        "Queued for sealing": "W kolejce do zapieczętowania",
+        "Sealing runs as a background job on the server. The sealed document and its evidence pack appear next to the original once it has run.": "Pieczętowanie działa jako zadanie w tle na serwerze. Zapieczętowany dokument i jego pakiet dowodowy pojawią się obok oryginału, gdy zadanie zostanie wykonane.",
+        "This server does not run background jobs on a schedule, so a queued document can wait a long time or never be picked up. An administrator can change this under Administration settings, Basic settings.": "Ten serwer nie uruchamia zadań w tle według harmonogramu, więc dokument w kolejce może długo czekać lub nigdy nie zostać przetworzony. Administrator może to zmienić w Ustawieniach administracyjnych, Ustawienia podstawowe.",
+        "Background jobs": "Zadania w tle",
+        "This server runs background jobs in \"{mode}\" mode.": "Ten serwer uruchamia zadania w tle w trybie „{mode}”.",
+        "%n document is waiting to be sealed.": [
+            "%n dokument czeka na zapieczętowanie.",
+            "%n dokumenty czekają na zapieczętowanie.",
+            "%n dokumentów czeka na zapieczętowanie."
+        ],
+        "Only \"Cron\" runs on a schedule. In any other mode a queued document is only picked up while somebody has a page open, so sealing can take a long time or not happen at all. Change this under Administration settings, Basic settings.": "Tylko „Cron” działa według harmonogramu. W każdym innym trybie dokument z kolejki jest przetwarzany tylko wtedy, gdy ktoś ma otwartą stronę, więc pieczętowanie może trwać długo lub nie nastąpić wcale. Zmień to w Ustawieniach administracyjnych, Ustawienia podstawowe.",
+        "Queued for sealing. The sealed document appears next to the original once the server has run the job.": "W kolejce do zapieczętowania. Zapieczętowany dokument pojawi się obok oryginału, gdy serwer wykona zadanie."
     },
     "nplurals=3; plural=(n==1 ? 0 : n%10>=2 && n%10<=4 && (n%100<10 || n%100>=20) ? 1 : 2);");
