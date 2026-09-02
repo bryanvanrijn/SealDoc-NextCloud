@@ -1,0 +1,10 @@
+# Shell scripts must have LF endings, always.
+#
+# A .sh file checked out with CRLF is not a cosmetic problem: a line ending in
+# a backslash followed by CR is an escaped carriage return rather than a line
+# continuation, so every multi-line command silently splits into pieces.
+*.sh text eol=lf
+*.php text eol=lf
+*.js text eol=lf
+*.xml text eol=lf
+*.json text eol=lf

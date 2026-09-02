@@ -22,6 +22,13 @@ of them showed up in the app list, the PHP syntax check or the server-side regis
 - **Browsers kept serving the old script.** Nextcloud derives the asset cache-buster from the app
   version, so a fix without a version bump is a fix nobody receives. Hence 0.1.1.
 
+### Added
+
+- `tests/http-check.sh`: an HTTP-level check that logs in, loads the settings section and calls
+  both endpoints the way a browser does. The PHP-side check passed throughout the outage above,
+  because all three faults lived on the browser side of the request. This is the cheapest thing
+  that would have caught them.
+
 ### Verified end to end
 
 Against a real Nextcloud 30.0.17 and the live SealDoc API:
