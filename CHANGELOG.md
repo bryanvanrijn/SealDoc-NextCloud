@@ -3,6 +3,40 @@
 All notable changes to this app are documented here.
 The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
+## [0.1.1] - 2026-09-02
+
+Fixes found by running the app rather than reading it. All three broke the admin screen and none
+of them showed up in the app list, the PHP syntax check or the server-side registration checks.
+
+### Fixed
+
+- **The settings screen did nothing at all.** It called `axios` directly, assuming Nextcloud
+  exposes it globally. It does not in Nextcloud 30, so the click handler threw straight after
+  setting the "Saving..." label and no request ever left the browser. The tell was the access log:
+  not a single request to `/apps/sealdoc/config`. Replaced with `fetch` plus the request token,
+  which needs nothing that has to be bundled.
+- **The settings endpoints rejected every request.** `#[AuthorizedAdminSetting]` is typed
+  `class-string<IDelegatedSettings>` and pointed at a class that only implemented `ISettings`.
+  That passes a type check and fails at runtime, and it was hidden behind the `axios` bug.
+  `Admin` now implements `IDelegatedSettings`.
+- **Browsers kept serving the old script.** Nextcloud derives the asset cache-buster from the app
+  version, so a fix without a version bump is a fix nobody receives. Hence 0.1.1.
+
+### Verified end to end
+
+Against a real Nextcloud 30.0.17 and the live SealDoc API:
+
+    /Facturen/proef-factuur.txt                          81 bytes  text/plain
+    /Facturen/proef-factuur-sealed.pdf               25.274 bytes  application/pdf
+    /SealDoc evidence/2026/proef-factuur-evidence.zip 23.252 bytes  application/zip
+
+    seal record: fileId 620 -> sealed 621, evidence 624
+    reverse lookup on the sealed file: found
+
+The output is genuinely PDF/A-3B (`<pdfaid:part>3`, `<pdfaid:conformance>B`), and the pack
+contains `chain_of_custody.json`, `compliance_passport.json`, `ledger.json`, `MANIFEST.json`,
+`manifest.sha256` and `public-keys.jwk`, so a third party can verify it without either system.
+
 ## [0.1.0] - 2026-09-01
 
 First working version. Verified against Nextcloud 30.0.17 with PHP 8.3.

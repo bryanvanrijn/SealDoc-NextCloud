@@ -36,7 +36,7 @@ timestamp** from a trusted authority, a **SHA-384 hash chain** and a
 You choose. Point the app at the hosted service in the EU, or at your own
 self-hosted SealDoc instance. The app talks to nothing else.
 	]]></description>
-	<version>0.1.0</version>
+	<version>0.1.1</version>
 	<licence>agpl</licence>
 	<author mail="bryan@fefem.nl">Bryan van Rijn</author>
 	<namespace>SealDoc</namespace>

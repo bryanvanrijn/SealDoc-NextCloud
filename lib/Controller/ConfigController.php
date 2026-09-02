@@ -9,7 +9,7 @@ use OCP\AppFramework\Controller;
 use OCP\AppFramework\Http\Attribute\AuthorizedAdminSetting;
 use OCP\AppFramework\Http\DataResponse;
 use OCP\IRequest;
-use OCP\Settings\IDelegatedSettings;
+use OCA\SealDoc\Settings\Admin;
 
 class ConfigController extends Controller {
 	public function __construct(
@@ -20,7 +20,7 @@ class ConfigController extends Controller {
 		parent::__construct($appName, $request);
 	}
 
-	#[AuthorizedAdminSetting(settings: IDelegatedSettings::class)]
+	#[AuthorizedAdminSetting(settings: Admin::class)]
 	public function setConfig(?string $baseUrl = null, ?string $apiKey = null, ?bool $storeEvidence = null, ?string $evidenceFolder = null): DataResponse {
 		if ($baseUrl !== null) {
 			$this->client->setBaseUrl($baseUrl);
@@ -47,7 +47,7 @@ class ConfigController extends Controller {
 		]);
 	}
 
-	#[AuthorizedAdminSetting(settings: IDelegatedSettings::class)]
+	#[AuthorizedAdminSetting(settings: Admin::class)]
 	public function test(): DataResponse {
 		return new DataResponse($this->client->ping());
 	}
