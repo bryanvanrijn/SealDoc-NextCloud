@@ -32,7 +32,8 @@
  * login page with no session and no error. curl does not care, which is what
  * makes that an hour of confusion.
  *
- * NC_SEALED_FILE is optional. Without it the shield assertions are reported as
+ * NC_SEALED_FILE and NC_EVIDENCE_FILE are optional, and both have to name files in
+ * the account's root listing. Without them those assertions are reported as
  * skipped rather than passed, because a check that cannot fail is not a check.
  *
  * Playwright is not a dependency of this app. Point PLAYWRIGHT to an existing
@@ -44,6 +45,7 @@ const BASE = process.env.NC_URL || ''
 const USER = process.env.NC_USER || ''
 const PASS = process.env.NC_PASS || ''
 const SEALED = process.env.NC_SEALED_FILE || ''
+const EVIDENCE = process.env.NC_EVIDENCE_FILE || ''
 const UNSEALED = process.env.NC_UNSEALED_FILE || 'Readme.md'
 
 if (!BASE || !USER || !PASS) {
@@ -119,33 +121,71 @@ const skipped = (what, why) => {
 			&& window.OCA.Files.Sidebar._state && window.OCA.Files.Sidebar._state.tabs || []).map((t) => t.id),
 	}))
 
-	check('both DAV properties are registered', state.props.length === 2)
+	// All four, by name. Counting them was enough while there were two; it stops
+	// being enough the moment one is renamed and another added in the same
+	// change, which is how a count keeps passing over a property nobody asks for.
+	const WANT = ['sealdoc:sealed', 'sealdoc:evidence-file-id', 'sealdoc:sealed-file-id', 'sealdoc:complete', 'sealdoc:role']
+	const absent = WANT.filter((p) => !state.props.includes(p))
+	check('every DAV property is registered' + (absent.length ? ': missing ' + absent.join(', ') : ''), absent.length === 0)
 	check('the namespace is registered', state.ns === 'http://sealdoc.eu/ns')
 	check('the seal action is registered', state.actions.includes('sealdoc-seal'))
 	check('the shield action is registered', state.actions.includes('sealdoc-evidence'))
 	check('the Seal sidebar tab is registered', state.tabs.includes('sealdoc'))
 
-	const shieldOn = (name) => page.evaluate((n) => {
+	// Returns the shield's own label rather than a boolean. The label says which
+	// of the three states the row is in, and a test that only asked "is there a
+	// shield" would pass just as happily on a document whose PDF/A conversion
+	// failed as on one that got everything, which is precisely the confusion
+	// the three states exist to end.
+	const shieldLabel = (name) => page.evaluate((n) => {
 		const row = document.querySelector('[data-cy-files-list-row-name="' + n.replace(/"/g, '\\"') + '"]')
 		if (!row) {
 			return null
 		}
-		return [...row.querySelectorAll('button')]
-			.some((b) => /sealed/i.test((b.getAttribute('aria-label') || b.title || '')))
+		const button = [...row.querySelectorAll('button')]
+			.find((b) => /sealed|evidence pack/i.test((b.getAttribute('aria-label') || b.title || '')))
+		return button ? (button.getAttribute('aria-label') || button.title || '').trim() : ''
 	}, name)
 
 	if (SEALED) {
-		const on = await shieldOn(SEALED)
-		check('the shield is drawn on ' + SEALED, on === true)
+		const label = await shieldLabel(SEALED)
+		check('a shield is drawn on ' + SEALED + (label ? ': "' + label + '"' : ''), !!label)
 	} else {
-		skipped('the shield is drawn on a sealed file', 'set NC_SEALED_FILE')
+		skipped('a shield is drawn on a sealed file', 'set NC_SEALED_FILE')
 	}
 
-	const off = await shieldOn(UNSEALED)
+	if (EVIDENCE) {
+		// The pack used to answer "not sealed" on every surface, because the
+		// lookup matched the source and the output and forgot the third file.
+		//
+		// It lives in its own folder, so NC_EVIDENCE_FILE may be a path. The
+		// listing there is a second, independent chance for the registration to
+		// be too late, which makes this worth walking to rather than skipping.
+		const slash = EVIDENCE.lastIndexOf('/')
+		const dir = slash === -1 ? '' : EVIDENCE.slice(0, slash)
+		const name = slash === -1 ? EVIDENCE : EVIDENCE.slice(slash + 1)
+		if (dir) {
+			propfinds.length = 0
+			await page.goto(BASE + '/index.php/apps/files/files?dir=' + encodeURIComponent(dir),
+				{ waitUntil: 'networkidle', timeout: 60000 })
+			await page.waitForTimeout(2500)
+			const sub = propfinds.find((p) => p.url.includes(encodeURIComponent(dir.split('/').pop())))
+			check('the listing of ' + dir + ' asks for the SealDoc properties too', !!sub && sub.asked)
+		}
+		const label = await shieldLabel(name)
+		check('the evidence pack is recognised as part of a seal' + (label ? ': "' + label + '"' : ''),
+			!!label && /evidence pack/i.test(label))
+	} else {
+		skipped('the evidence pack is recognised', 'set NC_EVIDENCE_FILE')
+	}
+
+	await page.goto(BASE + '/index.php/apps/files/files', { waitUntil: 'networkidle', timeout: 60000 })
+	await page.waitForTimeout(2000)
+	const off = await shieldLabel(UNSEALED)
 	if (off === null) {
 		skipped('no shield on an unsealed file', UNSEALED + ' not in the listing')
 	} else {
-		check('no shield on ' + UNSEALED, off === false)
+		check('no shield on ' + UNSEALED, off === '')
 	}
 
 	check('no uncaught errors on the page', crashes.length === 0)

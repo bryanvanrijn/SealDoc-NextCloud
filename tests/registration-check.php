@@ -117,7 +117,83 @@ try {
 	check('evidence settings: ' . $e->getMessage(), false);
 }
 
-// 8. The settings screen is built from one shape.
+// 8. A seal can be found from any of the three files it involves.
+//
+// The evidence pack was missing from that lookup, so opening the one file whose
+// entire purpose is to prove the seal answered "this document has not been
+// sealed". This walks whatever seals the instance has and checks all three.
+try {
+	$mapper = $server->get(\OCA\SealDoc\Db\SealMapper::class);
+	$db = $server->get(\OCP\IDBConnection::class);
+	$q = $db->getQueryBuilder();
+	$q->select('*')->from('sealdoc_seals')->setMaxResults(25);
+	$rows = $q->executeQuery()->fetchAll();
+
+	if ($rows === []) {
+		echo "  skip  seal lookup by file id (no seals on this instance)
+";
+	} else {
+		$bad = [];
+		foreach ($rows as $row) {
+			foreach (['file_id', 'sealed_file_id', 'evidence_file_id'] as $column) {
+				$id = (int)$row[$column];
+				if ($id === 0) {
+					continue;
+				}
+				$found = $mapper->findByAnyFileId($id);
+				if ($found === null || (int)$found->getId() !== (int)$row['id']) {
+					$bad[] = $column . '=' . $id;
+				}
+			}
+		}
+		check('every seal is found from its source, its output and its evidence pack'
+			. ($bad === [] ? '' : ': missed ' . implode(', ', $bad)), $bad === []);
+		check('an id belonging to no seal returns null', $mapper->findByAnyFileId(2147483000) === null);
+	}
+} catch (\Throwable $e) {
+	check('seal lookup: ' . $e->getMessage(), false);
+}
+
+// 9. Three states, not two.
+//
+// A guarantee that is absent and a passport that was never stored must not
+// render the same. SealFacts is the single place that decides, so this asserts
+// the distinction there rather than in three callers.
+try {
+	$make = static function (?string $passport): \OCA\SealDoc\Db\Seal {
+		$seal = new \OCA\SealDoc\Db\Seal();
+		$seal->setFileId(11);
+		$seal->setSealedFileId(22);
+		$seal->setEvidenceFileId(33);
+		$seal->setPassport($passport);
+		return $seal;
+	};
+
+	$none = new \OCA\SealDoc\Service\SealFacts($make(null));
+	check('no passport means unknown, not false', $none->isComplete() === null && $none->pdfA3b() === null);
+	check('no passport reports nothing missing', $none->missing() === []);
+
+	$all = new \OCA\SealDoc\Service\SealFacts($make(json_encode(['compliance' => [
+		'pdfA3b' => true, 'rfc3161Timestamp' => true, 'chainOfCustody' => true, 'immutableAuditTrail' => true,
+	]])));
+	check('a complete passport is complete', $all->isComplete() === true && $all->missing() === []);
+
+	$gap = new \OCA\SealDoc\Service\SealFacts($make(json_encode(['compliance' => [
+		'pdfA3b' => false, 'pdfA3bValidation' => 'non-compliant',
+		'rfc3161Timestamp' => false, 'chainOfCustody' => true, 'immutableAuditTrail' => true,
+	]])));
+	check('a passport with gaps is not complete', $gap->isComplete() === false);
+	check('the gaps are named', $gap->missing() === ['pdfA3b', 'rfc3161Timestamp']);
+	check('the validator verdict is kept verbatim', $gap->pdfA3bValidation() === 'non-compliant');
+
+	check('the three files are told apart',
+		$gap->roleOf(11) === 'source' && $gap->roleOf(22) === 'sealed'
+		&& $gap->roleOf(33) === 'evidence' && $gap->roleOf(99) === 'unknown');
+} catch (\Throwable $e) {
+	check('seal facts: ' . $e->getMessage(), false);
+}
+
+// 10. The settings screen is built from one shape.
 //
 // The page load and the save response used to assemble their payload
 // separately. They drifted: the form grew a retention field, the save kept

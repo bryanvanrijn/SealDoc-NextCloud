@@ -40,6 +40,23 @@ const attr = (node, name) => node?.attributes?.[`sealdoc:${name}`]
 
 const isSealed = (node) => String(attr(node, 'sealed') ?? 'false') === 'true'
 const evidenceId = (node) => Number(attr(node, 'evidence-file-id') ?? 0)
+const sealedId = (node) => Number(attr(node, 'sealed-file-id') ?? 0)
+
+/**
+ * 'true', 'false' or 'unknown'. Kept as three values all the way to the icon.
+ *
+ * A document whose PDF/A conversion came back non-compliant, or that got no
+ * timestamp, used to draw exactly the same shield as one that got everything.
+ * That is the single worst thing this app could do: the shield is the whole
+ * claim, and a claim that cannot be wrong is not worth reading.
+ */
+const completeness = (node) => {
+	const v = String(attr(node, 'complete') ?? 'unknown')
+	return v === 'true' || v === 'false' ? v : 'unknown'
+}
+
+/** 'source', 'sealed', 'evidence' or 'none'. */
+const roleOf = (node) => String(attr(node, 'role') ?? 'none')
 /**
  * Is this a file rather than a folder?
  *
@@ -62,10 +79,19 @@ const isFile = (node) => {
 	return Boolean(node?.mime)
 }
 
-const shieldIcon = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="20" height="20" aria-hidden="true">
-	<path d="M12 2 4 5v6.5c0 4.6 3.4 8.5 8 9.5 4.6-1 8-4.9 8-9.5V5l-8-3Z" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linejoin="round"/>
-	<path d="m8.5 12 2.6 2.6L16 9.7" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+const SHIELD = 'M12 2 4 5v6.5c0 4.6 3.4 8.5 8 9.5 4.6-1 8-4.9 8-9.5V5l-8-3Z'
+
+const wrap = (inner) => `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="20" height="20" aria-hidden="true">
+	<path d="${SHIELD}" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linejoin="round"/>
+	${inner}
 </svg>`
+
+// A tick, an exclamation mark and a question mark. Three icons because there
+// are three answers, and because somebody scanning a folder should be able to
+// see which documents will not hold up without opening anything.
+const shieldIcon = wrap('<path d="m8.5 12 2.6 2.6L16 9.7" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>')
+const shieldGapIcon = wrap('<path d="M12 7.5v5.2M12 16.2v.6" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"/>')
+const shieldUnknownIcon = wrap('<path d="M10.1 9.6a2 2 0 1 1 2.6 2.2c-.5.2-.8.7-.8 1.3v.4M12 16.3v.6" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"/>')
 
 const sealIcon = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="20" height="20" aria-hidden="true">
 	<path d="M12 2 4 5v6.5c0 4.6 3.4 8.5 8 9.5 4.6-1 8-4.9 8-9.5V5l-8-3Z" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linejoin="round"/>
@@ -118,9 +144,42 @@ registerFileAction(new FileAction({
 
 registerFileAction(new FileAction({
 	id: 'sealdoc-evidence',
-	displayName: () => t('sealdoc', 'Sealed: open the evidence'),
-	title: () => t('sealdoc', 'This document has been sealed. Open its evidence pack.'),
-	iconSvgInline: () => shieldIcon,
+	displayName: ([node]) => {
+		if (roleOf(node) === 'evidence') {
+			return t('sealdoc', 'Evidence pack: open the sealed document')
+		}
+		switch (completeness(node)) {
+		case 'false':
+			return t('sealdoc', 'Sealed, with gaps: open the evidence')
+		case 'unknown':
+			return t('sealdoc', 'Sealed, contents unverified: open the evidence')
+		default:
+			return t('sealdoc', 'Sealed: open the evidence')
+		}
+	},
+	title: ([node]) => {
+		if (roleOf(node) === 'evidence') {
+			return t('sealdoc', 'This is the evidence pack for a sealed document.')
+		}
+		switch (completeness(node)) {
+		case 'false':
+			return t('sealdoc', 'This document was sealed, but at least one guarantee is missing. Open the Seal panel to see which.')
+		case 'unknown':
+			return t('sealdoc', 'This document was sealed, but what the seal contains could not be read back.')
+		default:
+			return t('sealdoc', 'This document has been sealed. Open its evidence pack.')
+		}
+	},
+	iconSvgInline: ([node]) => {
+		switch (completeness(node)) {
+		case 'false':
+			return shieldGapIcon
+		case 'unknown':
+			return shieldUnknownIcon
+		default:
+			return shieldIcon
+		}
+	},
 
 	// Drawn on the row itself. A badge you have to open a menu to discover is
 	// not a badge.
@@ -128,6 +187,17 @@ registerFileAction(new FileAction({
 	enabled: (nodes) => nodes.length === 1 && isSealed(nodes[0]),
 
 	async exec(node) {
+		// On the pack itself, "open the evidence" would reopen the file you are
+		// already looking at. Send the reader to the document it belongs to.
+		if (roleOf(node) === 'evidence') {
+			const doc = sealedId(node)
+			if (doc) {
+				window.location.href = generateUrl('/f/{id}', { id: doc })
+				return null
+			}
+			toast('warning', t('sealdoc', 'The sealed document this pack belongs to could not be found. It may have been deleted.'))
+			return null
+		}
 		const id = evidenceId(node)
 		if (!id) {
 			// Sealed, but no pack stored: either the administrator left

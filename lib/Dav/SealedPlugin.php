@@ -6,6 +6,7 @@ namespace OCA\SealDoc\Dav;
 
 use OCA\DAV\Connector\Sabre\Node;
 use OCA\SealDoc\Db\SealMapper;
+use OCA\SealDoc\Service\SealFacts;
 use Sabre\DAV\PropFind;
 use Sabre\DAV\Server;
 use Sabre\DAV\ServerPlugin;
@@ -29,6 +30,17 @@ class SealedPlugin extends ServerPlugin {
 	public const NS = 'http://sealdoc.eu/ns';
 	public const PROP_SEALED = '{' . self::NS . '}sealed';
 	public const PROP_EVIDENCE_ID = '{' . self::NS . '}evidence-file-id';
+	/**
+	 * 'true', 'false' or 'unknown'. Three values and not a boolean, because a
+	 * seal whose passport was never stored is not the same as one that came
+	 * back with a guarantee missing, and the file list has to be able to tell
+	 * them apart without asking a second time per row.
+	 */
+	public const PROP_COMPLETE = '{' . self::NS . '}complete';
+	/** Which of the three files this is: source, sealed or evidence. */
+	public const PROP_ROLE = '{' . self::NS . '}role';
+	/** So the shield on an evidence pack can point at the document it proves. */
+	public const PROP_SEALED_ID = '{' . self::NS . '}sealed-file-id';
 
 	public function __construct(
 		private SealMapper $mapper,
@@ -49,7 +61,10 @@ class SealedPlugin extends ServerPlugin {
 		// issues PROPFIND for every listing in the instance, including from
 		// desktop and mobile clients that will never draw a shield.
 		if ($propFind->getStatus(self::PROP_SEALED) === null
-			&& $propFind->getStatus(self::PROP_EVIDENCE_ID) === null) {
+			&& $propFind->getStatus(self::PROP_EVIDENCE_ID) === null
+			&& $propFind->getStatus(self::PROP_COMPLETE) === null
+			&& $propFind->getStatus(self::PROP_ROLE) === null
+			&& $propFind->getStatus(self::PROP_SEALED_ID) === null) {
 			return;
 		}
 
@@ -62,7 +77,27 @@ class SealedPlugin extends ServerPlugin {
 			return;
 		}
 
+		// Deliberately not repaired here. PassportReader::backfill can recover a
+		// missing passport from the stored pack, but that is a file read and a
+		// database write, and this method runs once per row in every listing in
+		// the instance. 'unknown' is the honest answer in a file list; the panel
+		// does the repair when somebody actually looks.
+		$facts = $seal === null ? null : new SealFacts($seal);
+		$fileId = $node->getId();
+
 		$propFind->handle(self::PROP_SEALED, static fn () => $seal !== null ? 'true' : 'false');
 		$propFind->handle(self::PROP_EVIDENCE_ID, static fn () => (string)($seal?->getEvidenceFileId() ?? 0));
+		$propFind->handle(self::PROP_COMPLETE, static function () use ($facts) {
+			if ($facts === null) {
+				return 'false';
+			}
+			return match ($facts->isComplete()) {
+				true => 'true',
+				false => 'false',
+				default => 'unknown',
+			};
+		});
+		$propFind->handle(self::PROP_ROLE, static fn () => $facts?->roleOf($fileId) ?? 'none');
+		$propFind->handle(self::PROP_SEALED_ID, static fn () => (string)($seal?->getSealedFileId() ?? 0));
 	}
 }

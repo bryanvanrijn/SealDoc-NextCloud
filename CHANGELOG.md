@@ -3,6 +3,79 @@
 All notable changes to this app are documented here.
 The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
+## [0.4.0] - 2026-09-02
+
+### Fixed
+
+- **The evidence pack reported "This document has not been sealed."** One seal produces three
+  files: the original, the sealed output written next to it, and the pack filed elsewhere. The
+  lookup matched the first two and quietly not the third, so the one file whose entire purpose
+  is to prove the seal denied that a seal existed. It now matches all three, the pack carries a
+  shield of its own, and its shield and panel link to the document rather than back to itself.
+
+- **The panel printed a reassuring line next to a red cross.** The note under the archival format
+  row said "validated against ISO 19005-3" whenever a verdict existed at all, without reading it.
+  On a document the validator had called `non-compliant`, that was the opposite of the truth. It
+  now repeats the verdict itself.
+
+- **A seal with no stored passport is repaired instead of shrugged at.** Documents sealed before
+  the passport column existed rendered as four question marks forever, while the answers sat in
+  a zip the app had written itself two folders away. The panel now recovers the passport from the
+  stored pack, once, and says so in the log. Recovering the four seals on the test instance
+  turned four rows of "unknown" into real answers, one of which was a failure nobody had seen.
+
+### Added
+
+- **Three shields instead of one.** A tick where every guarantee is present, an exclamation mark
+  where one is missing, a question mark where the seal could not be read back. A document whose
+  PDF/A conversion came back non-compliant used to draw exactly the same shield as one that got
+  everything, which is the worst thing this app could do: the shield is the whole claim, and a
+  claim that cannot be wrong is not worth reading.
+
+- **A verdict line at the top of the panel**, so somebody about to rely on a document learns in
+  the first line whether they can, instead of scanning four rows for a red cross. Every gap now
+  has its consequence written out underneath, not just the missing PDF/A and timestamp.
+
+- **A role banner**: whether you are looking at the original, the sealed version or the pack.
+
+- `lib/Service/SealFacts.php`, the one place that reads a passport. Three surfaces derived those
+  answers separately before, and the one that disagreed was the one nobody looked at.
+
+- `tests/l10n-check.mjs`, which compares the strings the code asks for against the strings each
+  language file has, in both directions, and checks the `.js` and `.json` halves against each
+  other and the plural arrays against the declared `nplurals`. Its first run found 39 untranslated
+  strings and 2 dead keys across all seven languages, several of them from long before this
+  release.
+
+- **The panel now quotes SealDoc rather than paraphrasing it.** Every evidence pack carries a
+  `ledger.json` whose `assurance` block states, in one sentence, what the evidence is worth. On the
+  test instance that read `VALID-WITH-LOWER-ASSURANCE`, with the note *"No independent time anchor.
+  The chain is intact, but the time it happened rests on SealDoc's own clock only."* That is the most
+  useful sentence in the whole archive and the app was showing none of it.
+
+- **The fingerprint is now checked, not just printed.** The panel hashes the sealed file as it is
+  stored right now and says whether it still matches, naming the algorithm it found. A fingerprint
+  nobody checks is decoration; this turns the panel from a report about the past into a statement
+  about the file in front of you, and it is what would catch a sealed PDF edited in place. Files
+  over 64 MB report "not checked" rather than being read into memory to answer a sidebar.
+
+- **A pack that arrives without its ledger is now named as such.** See below.
+
+### Measured
+
+Every document sealed through this app on the test instance came back **without an RFC 3161
+timestamp**, seven for seven. One also failed PDF/A-3B conversion while still being written to disk
+as `<name>-sealed.pdf`.
+
+And **one pack in seven arrived without `ledger.json` and `public-keys.jwk`**: a valid zip, with a
+valid compliance passport inside, carrying no hash chain and no verification keys. Its passport also
+reported `immutableAuditTrail: false`, so the two agree. Nothing in the response, the passport or
+the manifest said anything was missing; the only way to find out was to list the archive. Neighbouring
+seals two minutes either side were complete, so this is intermittent rather than a setting.
+
+The app now says all of it, per document, in red. That is the point of the panel, and it is why the
+app description no longer promises a timestamp unconditionally.
+
 ## [0.3.3] - 2026-09-02
 
 ### Fixed

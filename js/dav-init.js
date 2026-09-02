@@ -37,7 +37,13 @@
 	'use strict'
 
 	var NS = 'http://sealdoc.eu/ns'
-	var PROPS = ['sealdoc:sealed', 'sealdoc:evidence-file-id']
+	var PROPS = [
+		'sealdoc:sealed',
+		'sealdoc:evidence-file-id',
+		'sealdoc:sealed-file-id',
+		'sealdoc:complete',
+		'sealdoc:role',
+	]
 
 	function add(list) {
 		if (!Array.isArray(list)) {

@@ -6,6 +6,7 @@ namespace OCA\SealDoc\BackgroundJob;
 
 use OCA\SealDoc\Db\Seal;
 use OCA\SealDoc\Db\SealMapper;
+use OCA\SealDoc\Service\PassportReader;
 use OCA\SealDoc\Service\SealDocClient;
 use OCP\AppFramework\Utility\ITimeFactory;
 use OCP\BackgroundJob\QueuedJob;
@@ -37,6 +38,7 @@ class SealJob extends QueuedJob {
 		private IRootFolder $rootFolder,
 		private SealDocClient $client,
 		private SealMapper $mapper,
+		private PassportReader $passports,
 		private LoggerInterface $logger,
 	) {
 		parent::__construct($time);
@@ -104,7 +106,8 @@ class SealJob extends QueuedJob {
 				]);
 			}
 
-			$passport = $pack === null ? null : $this->extractPassport($pack);
+			$passport = $pack === null ? null : $this->passports->fromBytes($pack);
+			$assurance = $pack === null ? null : $this->passports->assuranceFromBytes($pack);
 
 			$evidenceFileId = 0;
 			if ($pack !== null && $this->client->isStoringEvidence()) {
@@ -118,6 +121,7 @@ class SealJob extends QueuedJob {
 			$seal->setEvidenceFileId($evidenceFileId);
 			$seal->setUserId($userId);
 			$seal->setPassport($passport);
+			$seal->setAssurance($assurance);
 			$seal->setSealedAt(time());
 			$this->mapper->insert($seal);
 
@@ -190,34 +194,6 @@ class SealJob extends QueuedJob {
 		return $stem . '-' . time() . self::EVIDENCE_SUFFIX;
 	}
 
-	/**
-	 * Pulls compliance_passport.json out of the pack.
-	 *
-	 * Stored verbatim. The panel reports what the evidence says; summarising it
-	 * here would put a second version of the truth in the database, and the two
-	 * would eventually disagree.
-	 */
-	private function extractPassport(string $pack): ?string {
-		$tmp = tempnam(sys_get_temp_dir(), 'sealdoc');
-		if ($tmp === false) {
-			return null;
-		}
-		try {
-			file_put_contents($tmp, $pack);
-			$zip = new \ZipArchive();
-			if ($zip->open($tmp) !== true) {
-				return null;
-			}
-			$json = $zip->getFromName('compliance_passport.json');
-			$zip->close();
-			return $json === false ? null : $json;
-		} catch (\Throwable $e) {
-			$this->logger->warning('SealDoc could not read the compliance passport', ['exception' => $e]);
-			return null;
-		} finally {
-			@unlink($tmp);
-		}
-	}
 
 	private function await(string $jobId): ?string {
 		for ($i = 0; $i < self::MAX_ATTEMPTS; $i++) {

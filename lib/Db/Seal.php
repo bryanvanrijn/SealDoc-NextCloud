@@ -26,6 +26,8 @@ use OCP\AppFramework\Db\Entity;
  * @method void setUserId(string $userId)
  * @method ?string getPassport()
  * @method void setPassport(?string $passport)
+ * @method ?string getAssurance()
+ * @method void setAssurance(?string $assurance)
  * @method int getSealedAt()
  * @method void setSealedAt(int $sealedAt)
  */
@@ -37,6 +39,8 @@ class Seal extends Entity {
 	protected string $userId = '';
 	protected int $sealedAt = 0;
 	protected ?string $passport = null;
+	/** The evidence ledger's own assurance block, verbatim JSON. */
+	protected ?string $assurance = null;
 
 	public function __construct() {
 		$this->addType('fileId', 'integer');

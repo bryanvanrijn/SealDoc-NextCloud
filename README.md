@@ -127,6 +127,18 @@ NC_URL=https://cloud.example.test NC_USER=admin NC_PASS=... NC_SEALED_FILE=invoi
 Nextcloud marks the session cookie Secure and a browser stores nothing over plain http: the login
 form posts, succeeds, and lands you back on the login page with no session and no error.
 
+There is a third check for the translations, because those rot silently and in one direction: the
+English source changes, the other seven files keep the old key, and every reader outside English
+gets English back with no error anywhere.
+
+```bash
+node tests/l10n-check.mjs
+```
+
+It compares the strings the code asks for against the strings each language has, in both
+directions, checks `l10n/x.js` against `l10n/x.json`, and checks every plural array against the
+`nplurals` that file declares.
+
 ## Background jobs
 
 **Sealing only happens when Nextcloud runs background jobs.** Nextcloud's default is AJAX, which

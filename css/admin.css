@@ -47,3 +47,35 @@
 	color: var(--color-error, #c9302c);
 	max-width: 44em;
 }
+
+/* The Seal panel verdict line and the role banner.
+   Colour carries meaning here, so the words carry it too: the text says
+   "not everything was delivered", it does not rely on the reader noticing
+   that a line is orange. */
+.sealdoc-tab .sealdoc-role {
+	color: var(--color-text-maxcontrast, #6b6b6b);
+	margin: 0 0 .5em;
+}
+
+.sealdoc-tab .sealdoc-verdict {
+	font-weight: 600;
+	margin: .25em 0 .75em;
+}
+
+.sealdoc-tab .sealdoc-verdict-gap {
+	color: var(--color-warning-text, #a06000);
+}
+
+.sealdoc-tab .sealdoc-verdict-unknown {
+	color: var(--color-text-maxcontrast, #6b6b6b);
+}
+
+.sealdoc-tab .sealdoc-assurance code {
+	font-size: 90%;
+	word-break: break-all;
+}
+
+.sealdoc-tab .sealdoc-verified {
+	color: var(--color-success-text, #2d7d46);
+	margin: .35em 0 0;
+}

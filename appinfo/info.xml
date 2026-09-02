@@ -34,6 +34,13 @@ with a complete chain of custody and no timestamp at all. A tick over a missing
 guarantee is worse than no panel, so a missing one is shown in red and named,
 with a sentence saying what it costs.
 
+The shield in the file list follows the same rule and has three states, so you
+can see which documents will not hold up without opening any of them:
+
+- a tick, where every guarantee is present;
+- an exclamation mark, where at least one is missing;
+- a question mark, where the seal could not be read back.
+
 **What it does not do**
 
 - It does not provide electronic signatures. It proves a document has not
@@ -59,7 +66,7 @@ guessing.
 You choose. Point the app at the hosted service in the EU, or at your own
 self-hosted SealDoc instance. The app talks to nothing else.
 	]]></description>
-	<version>0.3.3</version>
+	<version>0.4.0</version>
 	<licence>agpl</licence>
 	<author mail="bryan@fefem.nl">Bryan van Rijn</author>
 	<namespace>SealDoc</namespace>
