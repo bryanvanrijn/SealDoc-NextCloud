@@ -1,61 +1,119 @@
 /* SPDX-License-Identifier: AGPL-3.0-or-later
  *
- * The shield in the Files list.
+ * Two file actions in the Files list.
  *
- * A folder of invoices should say at a glance which documents carry proof and
- * which do not. That is the whole reason this app has a build step: Nextcloud
- * removed the global OCA.Files.fileActions API, and the replacement lives in
- * @nextcloud/files, which has to be bundled.
+ *   "Seal with SealDoc"          on anything not yet sealed
+ *   the shield, "open evidence"  on anything that is
  *
- * Two halves have to agree for this to work. The server contributes the
- * property (lib/Dav/SealedPlugin.php), and the client has to ASK for it, which
- * is what registerDavProperty below does. Register only one of the two and the
- * shield silently never appears, with nothing in any log to say why.
+ * The seal action exists because a Flow rule is the right answer for a process
+ * and the wrong answer for the first five minutes. Somebody who has just
+ * installed the app wants to try it on one file; telling them to go build a
+ * workflow rule first is how an app gets uninstalled before it has done
+ * anything. It doubles as the cheapest diagnostic there is: if this entry
+ * appears in the row menu, this bundle loaded.
+ *
+ * Two halves have to agree for the shield. The server contributes the property
+ * (lib/Dav/SealedPlugin.php) and the client has to ask for it, which is what
+ * registerDavProperty does below. Register only one and the shield silently
+ * never appears, with nothing in any log to say why.
  */
-import { registerFileAction, FileAction, registerDavProperty, Node } from '@nextcloud/files'
+import { registerFileAction, FileAction, registerDavProperty, Node, FileType } from '@nextcloud/files'
 import { translate as t } from '@nextcloud/l10n'
 import { generateUrl } from '@nextcloud/router'
+import axios from '@nextcloud/axios'
 
 const NS = 'http://sealdoc.eu/ns'
 
-// Ask for our properties in the PROPFIND the Files list already makes. Without
-// this the server never computes them, which is also why an unaware client
-// pays nothing for this app being installed.
 registerDavProperty('sealdoc:sealed', { sealdoc: NS })
 registerDavProperty('sealdoc:evidence-file-id', { sealdoc: NS })
 
-const isSealed = (node) => String(node?.attributes?.['sealdoc:sealed'] ?? 'false') === 'true'
-const evidenceId = (node) => Number(node?.attributes?.['sealdoc:evidence-file-id'] ?? 0)
+/**
+ * Read one of our properties off a node.
+ *
+ * Tries both keyings on purpose. Depending on the version, the DAV layer hands
+ * attributes back under the prefixed name or under the bare local name, and
+ * guessing wrong produces a shield that never draws while every server-side
+ * check reports healthy. Accepting both costs one line and removes a whole
+ * class of silent failure.
+ */
+const attr = (node, name) => node?.attributes?.[`sealdoc:${name}`]
+	?? node?.attributes?.[name]
+	?? node?.attributes?.[`{${NS}}${name}`]
 
-// Inline SVG rather than an icon component: one shield, no extra dependency,
-// and it inherits the row's colour like every other inline action.
-const shield = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="20" height="20" aria-hidden="true">
+const isSealed = (node) => String(attr(node, 'sealed') ?? 'false') === 'true'
+const evidenceId = (node) => Number(attr(node, 'evidence-file-id') ?? 0)
+const isFile = (node) => node instanceof Node && node.type === FileType.File
+
+const shieldIcon = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="20" height="20" aria-hidden="true">
 	<path d="M12 2 4 5v6.5c0 4.6 3.4 8.5 8 9.5 4.6-1 8-4.9 8-9.5V5l-8-3Z" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linejoin="round"/>
 	<path d="m8.5 12 2.6 2.6L16 9.7" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
 </svg>`
 
+const sealIcon = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="20" height="20" aria-hidden="true">
+	<path d="M12 2 4 5v6.5c0 4.6 3.4 8.5 8 9.5 4.6-1 8-4.9 8-9.5V5l-8-3Z" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linejoin="round"/>
+	<path d="M12 8.5v5M9.5 11h5" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+</svg>`
+
+const toast = (kind, message) => {
+	const api = window.OCP?.Toast
+	if (api && typeof api[kind] === 'function') {
+		api[kind](message)
+	} else {
+		// Better a browser alert than a click that appears to do nothing.
+		window.alert(message)
+	}
+}
+
+registerFileAction(new FileAction({
+	id: 'sealdoc-seal',
+	displayName: () => t('sealdoc', 'Seal with SealDoc'),
+	iconSvgInline: () => sealIcon,
+	enabled: (nodes) => nodes.length === 1 && isFile(nodes[0]) && !isSealed(nodes[0]),
+
+	async exec(node) {
+		try {
+			const { data } = await axios.post(generateUrl('/apps/sealdoc/seal/{fileId}', { fileId: node.fileid }))
+			if (data.status === 'already_sealed') {
+				toast('info', t('sealdoc', 'This document was already sealed.'))
+			} else {
+				// Honest about the delay rather than pretending it is done.
+				// Conversion and timestamping run in the background, so the
+				// sealed file appears once the next cron run picks the job up.
+				toast('success', t('sealdoc', 'Queued for sealing. The sealed document appears next to the original shortly.'))
+			}
+			return true
+		} catch (e) {
+			const reason = e?.response?.data?.error
+			if (reason === 'not_configured') {
+				toast('error', t('sealdoc', 'SealDoc is not configured yet. An administrator has to set the server URL and API key.'))
+			} else {
+				toast('error', t('sealdoc', 'Could not queue this document for sealing.'))
+			}
+			return false
+		}
+	},
+
+	order: 20,
+}))
+
 registerFileAction(new FileAction({
 	id: 'sealdoc-evidence',
-
 	displayName: () => t('sealdoc', 'Sealed: open the evidence'),
 	title: () => t('sealdoc', 'This document has been sealed. Open its evidence pack.'),
-	iconSvgInline: () => shield,
+	iconSvgInline: () => shieldIcon,
 
-	// Drawn on the row itself rather than hidden in the menu. A badge you have
-	// to open a menu to discover is not a badge.
+	// Drawn on the row itself. A badge you have to open a menu to discover is
+	// not a badge.
 	inline: () => true,
-
-	// Only on sealed files. enabled() is synchronous, which is exactly why the
-	// answer arrives as a DAV property instead of a request.
-	enabled: (nodes) => nodes.length === 1 && nodes[0] instanceof Node && isSealed(nodes[0]),
+	enabled: (nodes) => nodes.length === 1 && isSealed(nodes[0]),
 
 	async exec(node) {
 		const id = evidenceId(node)
 		if (!id) {
-			// Sealed, but the pack was not stored: the administrator left
+			// Sealed, but no pack stored: either the administrator left
 			// "Also store the evidence pack" off, or fetching it failed after
-			// the seal succeeded. Say so rather than navigating nowhere.
-			window.OCP?.Toast?.warning?.(t('sealdoc', 'This document is sealed, but no evidence pack was stored for it.'))
+			// the seal itself succeeded. Say so rather than navigating nowhere.
+			toast('warning', t('sealdoc', 'This document is sealed, but no evidence pack was stored for it.'))
 			return null
 		}
 		window.location.href = generateUrl('/f/{id}', { id })

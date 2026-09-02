@@ -9,6 +9,7 @@
 		"dev": "webpack --node-env development --progress"
 	},
 	"dependencies": {
+		"@nextcloud/axios": "^2.6.0",
 		"@nextcloud/files": "^3.10.0",
 		"@nextcloud/l10n": "^3.1.0",
 		"@nextcloud/router": "^3.0.1"
