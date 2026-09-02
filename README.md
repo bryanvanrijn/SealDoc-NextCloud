@@ -11,12 +11,17 @@ This app connects Nextcloud to [SealDoc](https://www.sealdoc.eu). Every document
 back as:
 
 - a **PDF/A-3B** file validated against ISO 19005-3,
-- carrying an **RFC 3161 timestamp** from a trusted authority,
 - a **SHA-384 hash chain**,
-- and a **chain-of-custody** record,
+- a **chain-of-custody** record,
+- and, where the SealDoc instance can reach a timestamping authority, an **RFC 3161 timestamp**,
 
 exported as a single evidence pack that a third party can verify without access to the system that
 produced it.
+
+That fourth line is conditional on purpose. Timestamping is fail-open on the SealDoc side: if no
+authority answers, the document is still sealed and still proves its own integrity, but it proves
+nothing about *when* it existed. The Seal panel reports that per document, in red, rather than
+letting the promise stand for a file that did not get one.
 
 ## How it works
 
@@ -84,19 +89,17 @@ sudo -u www-data php custom_apps/sealdoc/tests/registration-check.php
   ok    SealOperation resolves from the container
   ok    implements ISpecificOperation
   ok    bound to the File entity
-  ok    is admin scope only
-  ok    has a display name
-  ok    has an icon path
-  ok    operator list builds
-  ok    SealOperation appears in the engine operator list
-  ok    admin settings resolve
-  ok    admin settings point at our section
-  ok    client resolves
-  ok    client reports unconfigured before any setup
-  ok    ping answers without throwing
+  ...
+  ok    every seal is found from its source, its output and its evidence pack
+  ok    no passport means unknown, not false
+  ok    the three files are told apart
+  ...
 
 all checks passed
 ```
+
+The list grows; the line to act on is the last one. On an instance with no seals
+yet, one check reports `skip` instead, which is not a failure.
 
 There is a second check for the half that only a browser can see. Every client-side fault this app
 has had was invisible to the PHP and HTTP checks: a settings screen that called `axios`, which is

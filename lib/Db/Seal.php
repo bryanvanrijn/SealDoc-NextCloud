@@ -16,8 +16,8 @@ use OCP\AppFramework\Db\Entity;
  *
  * @method int getFileId()
  * @method void setFileId(int $fileId)
- * @method string getJobId()
- * @method void setJobId(string $jobId)
+ * @method ?string getJobId()
+ * @method void setJobId(?string $jobId)
  * @method int getSealedFileId()
  * @method void setSealedFileId(int $sealedFileId)
  * @method int getEvidenceFileId()
@@ -28,12 +28,25 @@ use OCP\AppFramework\Db\Entity;
  * @method void setPassport(?string $passport)
  * @method ?string getAssurance()
  * @method void setAssurance(?string $assurance)
+ * @method string getState()
+ * @method void setState(string $state)
+ * @method ?string getError()
+ * @method void setError(?string $error)
  * @method int getSealedAt()
  * @method void setSealedAt(int $sealedAt)
  */
 class Seal extends Entity {
+	public const STATE_SEALED = 'sealed';
+	/**
+	 * Attempted and lost. Written so the panel can say that instead of
+	 * repeating the sentence a never-touched file gets, and so a retry has
+	 * something to clear.
+	 */
+	public const STATE_FAILED = 'failed';
+
 	protected int $fileId = 0;
-	protected string $jobId = '';
+	/** Null on a failed attempt: when SealDoc rejects the upload there is no job. */
+	protected ?string $jobId = null;
 	protected int $sealedFileId = 0;
 	protected int $evidenceFileId = 0;
 	protected string $userId = '';
@@ -41,6 +54,10 @@ class Seal extends Entity {
 	protected ?string $passport = null;
 	/** The evidence ledger's own assurance block, verbatim JSON. */
 	protected ?string $assurance = null;
+	/** self::STATE_SEALED or self::STATE_FAILED. A row now records both outcomes. */
+	protected string $state = self::STATE_SEALED;
+	/** Why it failed, in words a user can read. Null on a successful seal. */
+	protected ?string $error = null;
 
 	public function __construct() {
 		$this->addType('fileId', 'integer');

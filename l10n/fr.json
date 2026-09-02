@@ -14,7 +14,6 @@
         "Set by an administrator of this Nextcloud. SealDoc does not determine statutory retention periods.": "Défini par l’administration de ce Nextcloud. SealDoc ne détermine pas les durées légales de conservation.",
         "Fingerprint of the sealed document": "Empreinte du document scellé",
         "Open the evidence pack": "Ouvrir le dossier de preuve",
-        "No evidence pack was stored. An administrator can switch that on in the SealDoc settings.": "Aucun dossier de preuve n’a été enregistré. Cela peut être activé dans les réglages SealDoc.",
         "Could not load the seal details.": "Impossible de charger les détails du sceau.",
         "Seal with SealDoc": "Sceller avec SealDoc",
         "Sealed: open the evidence": "Scellé : ouvrir la preuve",
@@ -70,7 +69,6 @@
         "Saved": "Enregistré",
         "Could not save": "Impossible d’enregistrer",
         "Testing...": "Test en cours...",
-        "Server reachable": "Serveur joignable",
         "Fill in a server URL first": "Renseignez d’abord une URL de serveur",
         "Server not reachable": "Serveur injoignable",
         "What SealDoc says this evidence is worth": "Ce que SealDoc dit de la valeur de cette preuve",
@@ -80,7 +78,18 @@
         "The sealed file could not be found, so the fingerprint could not be checked.": "Le fichier scellé est introuvable : l’empreinte n’a donc pas pu être vérifiée.",
         "The file is too large to hash while you wait, so the fingerprint was not checked here.": "Le fichier est trop volumineux pour que son empreinte soit calculée pendant que vous patientez : elle n’a donc pas été vérifiée ici.",
         "The evidence ledger chains its events with {algorithm}.": "Le registre de preuve chaîne ses événements avec {algorithm}.",
-        "This evidence pack contains no ledger, so it carries no hash chain and no verification keys. The document is sealed, but this pack on its own proves much less than a complete one. Sealing the document again should produce a full pack.": "Ce dossier de preuve ne contient pas de registre de preuve : il ne porte donc ni chaîne de hachage ni clés de vérification. Le document est scellé, mais ce dossier à lui seul prouve beaucoup moins qu’un dossier complet. Sceller à nouveau le document devrait produire un dossier complet."
+        "This evidence pack contains no ledger, so it carries no hash chain and no verification keys. The document is sealed, but this pack on its own proves much less than a complete one. Sealing the document again should produce a full pack.": "Ce dossier de preuve ne contient pas de registre de preuve : il ne porte donc ni chaîne de hachage ni clés de vérification. Le document est scellé, mais ce dossier à lui seul prouve beaucoup moins qu’un dossier complet. Sceller à nouveau le document devrait produire un dossier complet.",
+        "SealDoc is not configured on this server, so the document was never sent.": "SealDoc n’est pas configuré sur ce serveur : le document n’a donc jamais été envoyé.",
+        "The file is too large for this app to send in one piece.": "Le fichier est trop volumineux pour que cette application l’envoie en une seule fois.",
+        "SealDoc accepted the document and did not return a sealed version.": "SealDoc a accepté le document et n’a pas renvoyé de version scellée.",
+        "Something went wrong while sealing. The server log has the details.": "Une erreur s’est produite pendant le scellement. Le journal du serveur en contient les détails.",
+        "Sealing failed": "Échec du scellement",
+        "Nothing was written. You can try again from the row menu in Files.": "Rien n’a été écrit. Vous pouvez réessayer depuis le menu de la ligne dans Fichiers.",
+        "Evidence packs are not being stored. An administrator can switch that on in the SealDoc settings.": "Les dossiers de preuve ne sont pas enregistrés. Un administrateur peut activer cette option dans les paramètres SealDoc.",
+        "The evidence pack for this document could not be stored. The document is sealed and the seal stands, but the pack an auditor would be handed is missing. The server log says why.": "Le dossier de preuve de ce document n’a pas pu être enregistré. Le document est scellé et le sceau tient, mais le dossier de preuve que l’on remettrait à un auditeur est absent. Le journal du serveur en indique la raison.",
+        "Server reachable and the key works": "Serveur joignable et la clé fonctionne",
+        "Server reachable. Fill in an API key as well.": "Serveur joignable. Renseignez également une clé d’API.",
+        "Server reachable, but it rejected this API key.": "Serveur joignable, mais il a rejeté cette clé d’API."
     },
     "pluralForm": "nplurals=2; plural=(n > 1);"
 }

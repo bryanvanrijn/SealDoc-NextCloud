@@ -14,7 +14,6 @@
         "Set by an administrator of this Nextcloud. SealDoc does not determine statutory retention periods.": "Ingesteld door een beheerder van deze Nextcloud. SealDoc bepaalt geen wettelijke bewaartermijnen.",
         "Fingerprint of the sealed document": "Vingerafdruk van het verzegelde document",
         "Open the evidence pack": "Bewijspakket openen",
-        "No evidence pack was stored. An administrator can switch that on in the SealDoc settings.": "Er is geen bewijspakket opgeslagen. Een beheerder kan dat aanzetten in de SealDoc-instellingen.",
         "Could not load the seal details.": "Kon de zegelgegevens niet laden.",
         "Seal with SealDoc": "Verzegelen met SealDoc",
         "Sealed: open the evidence": "Verzegeld: bewijs openen",
@@ -70,7 +69,6 @@
         "Saved": "Opgeslagen",
         "Could not save": "Kon niet opslaan",
         "Testing...": "Testen...",
-        "Server reachable": "Server bereikbaar",
         "Fill in a server URL first": "Vul eerst een server-URL in",
         "Server not reachable": "Server niet bereikbaar",
         "What SealDoc says this evidence is worth": "Wat SealDoc zegt dat dit bewijs waard is",
@@ -80,7 +78,18 @@
         "The sealed file could not be found, so the fingerprint could not be checked.": "Het verzegelde bestand is niet gevonden, dus de vingerafdruk kon niet worden gecontroleerd.",
         "The file is too large to hash while you wait, so the fingerprint was not checked here.": "Het bestand is te groot om te hashen terwijl je wacht, dus de vingerafdruk is hier niet gecontroleerd.",
         "The evidence ledger chains its events with {algorithm}.": "Het bewijsregister schakelt de gebeurtenissen aaneen met {algorithm}.",
-        "This evidence pack contains no ledger, so it carries no hash chain and no verification keys. The document is sealed, but this pack on its own proves much less than a complete one. Sealing the document again should produce a full pack.": "Dit bewijspakket bevat geen bewijsregister, dus het draagt geen hashketen en geen verificatiesleutels. Het document is verzegeld, maar dit pakket op zichzelf bewijst veel minder dan een volledig pakket. Het document opnieuw verzegelen zou een volledig pakket moeten opleveren."
+        "This evidence pack contains no ledger, so it carries no hash chain and no verification keys. The document is sealed, but this pack on its own proves much less than a complete one. Sealing the document again should produce a full pack.": "Dit bewijspakket bevat geen bewijsregister, dus het draagt geen hashketen en geen verificatiesleutels. Het document is verzegeld, maar dit pakket op zichzelf bewijst veel minder dan een volledig pakket. Het document opnieuw verzegelen zou een volledig pakket moeten opleveren.",
+        "SealDoc is not configured on this server, so the document was never sent.": "SealDoc is niet ingesteld op deze server, dus het document is nooit verstuurd.",
+        "The file is too large for this app to send in one piece.": "Het bestand is te groot om door deze app in één keer te versturen.",
+        "SealDoc accepted the document and did not return a sealed version.": "SealDoc heeft het document aangenomen en geen verzegelde versie teruggegeven.",
+        "Something went wrong while sealing. The server log has the details.": "Er is iets misgegaan tijdens het verzegelen. De details staan in het serverlog.",
+        "Sealing failed": "Verzegelen mislukt",
+        "Nothing was written. You can try again from the row menu in Files.": "Er is niets weggeschreven. Je kunt het opnieuw proberen via het rijmenu in Bestanden.",
+        "Evidence packs are not being stored. An administrator can switch that on in the SealDoc settings.": "Bewijspakketten worden niet opgeslagen. Een beheerder kan dat aanzetten in de SealDoc-instellingen.",
+        "The evidence pack for this document could not be stored. The document is sealed and the seal stands, but the pack an auditor would be handed is missing. The server log says why.": "Het bewijspakket voor dit document kon niet worden opgeslagen. Het document is verzegeld en het zegel houdt stand, maar het pakket dat een auditor overhandigd zou krijgen ontbreekt. In het serverlog staat waarom.",
+        "Server reachable and the key works": "Server bereikbaar en de sleutel werkt",
+        "Server reachable. Fill in an API key as well.": "Server bereikbaar. Vul ook een API-sleutel in.",
+        "Server reachable, but it rejected this API key.": "Server bereikbaar, maar deze API-sleutel is geweigerd."
     },
     "pluralForm": "nplurals=2; plural=(n != 1);"
 }

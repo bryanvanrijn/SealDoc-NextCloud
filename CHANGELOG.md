@@ -3,6 +3,101 @@
 All notable changes to this app are documented here.
 The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
+## [0.5.2] - 2026-09-02
+
+Thirteen findings from a full audit of the app, ranked by how badly each one misleads somebody
+who has to rely on the evidence later. Everything below was measured against a running Nextcloud
+30.0.17 and the live SealDoc API, not read off the code.
+
+### Fixed: things the app asserted that were not true
+
+- **A seal outlived the files it pointed at.** Nothing ever deleted a row. Remove the sealed PDF
+  and the panel kept saying "Sealed on ...", kept ticking four guarantees and kept offering a link
+  to evidence, all about a file that no longer existed. Worse, the original became permanently
+  unsealable: the row still answered "already sealed" and the file list still hid "Seal with
+  SealDoc", with no route back. The likeliest way in is the obvious one, deleting a bad output in
+  order to retry.
+
+  There is a deletion listener now, and it treats the three files differently because they are
+  different: the sealed output going means the seal is gone, the pack going means the pack is
+  gone, and the original going changes nothing. The panel also resolves the ids before asserting
+  them, so it cannot lie even if the listener misses a case.
+
+- **The WebDAV shield told a share recipient what the panel deliberately refuses to.** The
+  controller has always declined to confirm a seal to a non-owner, with a comment saying the
+  evidence is the owner's to hand over. The DAV plugin had no ownership check at all and published
+  sealed, complete, role and two private file ids to anyone who could see the file. The two
+  surfaces then contradicted each other on screen: a shield in the row, "this document has not
+  been sealed" in the panel. Verified after the fix: the recipient gets `sealed=false` and no ids,
+  the owner still gets `true`.
+
+- **A name collision aborted the job silently and forever.** `report.docx` and `report.pdf` both
+  target `report-sealed.pdf`, and the second one hit a bare `return` with no log and no row. Every
+  retry showed a green "queued" toast, the file never appeared, and the administrator asked to
+  investigate found an empty log. The same file already handled the identical collision correctly
+  for the evidence pack. It now does for both: `botsing-sealed.pdf` and `botsing-2-sealed.pdf`.
+
+- **"Test connection" never sent the API key**, while its own docblock advertised that it
+  separated "I cannot reach this host" from "the host rejects my key". It could not: the endpoint
+  it used is public and answers 200 with no key and 200 with a wrong one. Measured:
+
+      /api/public/plans   no key   -> 200      /api/jobs?limit=1   no key   -> 401
+      /api/public/plans   bad key  -> 200      /api/jobs?limit=1   bad key  -> 401
+                                               /api/jobs?limit=1   real key -> 200
+
+  So a truncated or revoked key produced a green "Server reachable", after which nothing ever
+  sealed and nothing said why. It now probes twice and has five answers, including the one the
+  button was always sold as giving.
+
+- **The panel blamed a setting that was already on.** "No evidence pack was stored. An
+  administrator can switch that on" was shown whenever the pack id was zero, and the pack id
+  reaches zero three ways: the download failed, the write failed, or storage is off. The one cause
+  it named is the only one that was impossible in the common case. It now knows which.
+
+- **The seal moment was formatted in the browser's locale**, next to a label in the server's
+  language. A Dutch user on an en-US browser read "Verzegeld op 9/2/2026" for a seal made on
+  2 September, and two users of one instance read a different day from the same row, on the single
+  most audit-relevant value in the app.
+
+- **The Flow description and the README promised an RFC 3161 timestamp unconditionally**, at the
+  two screens a stranger and an administrator actually read. The correct wording already existed
+  in `appinfo/info.xml`; it had landed there and nowhere else.
+
+- **`composer.json` was not valid JSON.** `"OCA\SealDoc\"` needs both backslashes escaped.
+  Silent at runtime, because Nextcloud registers its own autoloader and never reads the file, and
+  a parse error for anyone running `composer` anything.
+
+### Added
+
+- **A failed seal is now recorded and shown.** There was no failure state at all: six bare returns
+  and a catch-all that logged and dropped. "Attempted and lost" therefore rendered as "This
+  document has not been sealed", which is the sentence a file nobody ever touched gets. The widest
+  funnel is a wrong or revoked API key, which passed the click-time check and the settings test
+  button and then failed inside every job forever.
+
+  The panel now says **Sealing failed**, names the reason in words, and says nothing was written
+  and it can be tried again. A failed row is cleared by the next attempt, so a retry is possible.
+
+- **A size guard before reading a file into memory.** `getContent()` loads the whole thing;
+  exhausting `memory_limit` is a fatal, not a `Throwable`, so the catch never saw it and the cron
+  worker died mid-run with the log blaming core. The controller already guarded the identical
+  hazard on the cheaper path.
+
+- **The client waits for a complete evidence pack.** SealDoc now answers 409 while its ledger is
+  still being written rather than handing over a pack that is missing its chain and its keys. This
+  client polls until completed and downloads immediately, which is exactly the window, so it
+  retries on 409 with the server's `Retry-After`.
+
+### Changed
+
+- `tests/registration-check.php` had a line that could not fail: `!(A && B) || A` is true for all
+  four assignments, so it printed a green tick under a sentence that was false about the machine
+  it ran on, and the README published that line as evidence. Relabelled to what it actually
+  asserts rather than deleted, because it still catches a regression.
+- The README's install block showed 13 of the 35 lines the script prints. It now shows the shape
+  and says the list grows.
+- Eleven new strings, all seven languages, 87 in total.
+
 ## [0.4.2] - 2026-09-02
 
 ### Fixed

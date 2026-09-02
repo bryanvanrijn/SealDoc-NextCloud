@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace OCA\SealDoc\Controller;
 
 use OCA\SealDoc\BackgroundJob\SealJob;
+use OCA\SealDoc\Db\Seal;
 use OCA\SealDoc\Db\SealMapper;
 use OCA\SealDoc\Service\PassportReader;
 use OCA\SealDoc\Service\QueueStatus;
@@ -64,6 +65,20 @@ class SealController extends Controller {
 		}
 
 		$seal = $this->mapper->findByAnyFileId($fileId);
+
+		// A recorded failure. Not the same answer as "never touched", which is
+		// what this used to say for a document that had been attempted and lost.
+		$attempt = $seal === null ? $this->mapper->findBySourceFileId($fileId) : null;
+		if ($attempt !== null && $attempt->getState() === Seal::STATE_FAILED
+			&& $attempt->getUserId() === $user->getUID()) {
+			return new DataResponse([
+				'sealed' => false,
+				'failed' => true,
+				'failureReason' => $attempt->getError() ?? 'error',
+				'failedAt' => $attempt->getSealedAt(),
+			]);
+		}
+
 		if ($seal === null) {
 			// Not sealed and waiting are different answers, and telling them
 			// apart is the whole difference between "nothing happened" and
@@ -97,8 +112,13 @@ class SealController extends Controller {
 			'role' => $facts->roleOf($fileId),
 			'sealedAt' => $seal->getSealedAt(),
 			'jobId' => $seal->getJobId(),
-			'evidenceFileId' => $seal->getEvidenceFileId(),
-			'sealedFileId' => $seal->getSealedFileId(),
+			// Resolved, not merely stored. A row outlives the files it points at,
+			// and an id that resolves to nothing produced a panel full of ticks
+			// about a document that had been deleted, with a link into a void.
+			// The deletion listener keeps the table honest; this is the check
+			// that means the panel cannot lie even when the listener missed one.
+			'evidenceFileId' => $this->existing($seal->getEvidenceFileId()),
+			'sealedFileId' => $this->existing($seal->getSealedFileId()),
 			'sourceFileId' => $seal->getFileId(),
 			// Null rather than false where the passport is silent: "we do not
 			// know" and "it is not there" are different answers and the panel
@@ -112,6 +132,11 @@ class SealController extends Controller {
 			'contentHash' => $facts->contentHash(),
 			'outputHash' => $facts->outputHash(),
 			'hasPassport' => $facts->hasPassport(),
+			// So the panel can tell "the administrator chose not to keep packs"
+			// apart from "the pack could not be stored". It named the first as
+			// the cause of both, and sent people to switch on a setting that was
+			// already on.
+			'storingEvidence' => $this->client->isStoringEvidence(),
 			// SealDoc's own verdict on this evidence, from the ledger inside the
 			// pack, passed through untouched. It is one sentence and it is the
 			// most useful thing in the whole archive.
@@ -175,6 +200,29 @@ class SealController extends Controller {
 		}
 	}
 
+	/**
+	 * The id back, or 0 when nothing is there any more.
+	 *
+	 * One lookup per call and only when the panel is opened, which is why this
+	 * is here and not in the WebDAV plugin: that one runs once per row in every
+	 * listing in the instance.
+	 */
+	private function existing(int $fileId): int {
+		if ($fileId === 0) {
+			return 0;
+		}
+		try {
+			$user = $this->userSession->getUser();
+			if ($user === null) {
+				return 0;
+			}
+			$nodes = $this->rootFolder->getUserFolder($user->getUID())->getById($fileId);
+			return isset($nodes[0]) ? $fileId : 0;
+		} catch (\Throwable) {
+			return 0;
+		}
+	}
+
 	#[NoAdminRequired]
 	public function seal(int $fileId): DataResponse {
 		$user = $this->userSession->getUser();
@@ -192,16 +240,31 @@ class SealController extends Controller {
 			return new DataResponse(['error' => 'not_found'], Http::STATUS_NOT_FOUND);
 		}
 
-		if ($this->mapper->findBySourceFileId($fileId) !== null) {
+		$existing = $this->mapper->findBySourceFileId($fileId);
+		if ($existing !== null && $existing->getState() === Seal::STATE_SEALED
+			&& $this->existing($existing->getSealedFileId()) !== 0) {
 			return new DataResponse(['status' => 'already_sealed']);
+		}
+		if ($existing !== null) {
+			// Either the previous attempt failed, or its output has since been
+			// deleted. Both used to answer "already sealed" forever, which left
+			// the one document somebody actually wanted to retry as the one they
+			// could not, with no route back through the interface.
+			$this->mapper->delete($existing);
 		}
 
 		// Queued rather than done here, for the same reason the Flow action
 		// queues: conversion and timestamping take seconds to a minute, and a
 		// request that holds a browser open that long looks like a hang.
+		// The OWNER, not whoever clicked. SealOperation already stored the owner
+		// and this stored the session user, so a file in Alice's folder sealed by
+		// Bob was stamped bob, and Alice's own panel then called her own sealed
+		// document unsealed. The job also writes into that user's folder, so the
+		// owner is the only value that puts the output next to the original.
+		$owner = $node->getOwner()?->getUID() ?? $user->getUID();
 		$this->jobList->add(SealJob::class, [
 			'fileId' => $fileId,
-			'userId' => $user->getUID(),
+			'userId' => $owner,
 		]);
 
 		return new DataResponse(['status' => 'queued']);

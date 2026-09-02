@@ -14,7 +14,6 @@
         "Set by an administrator of this Nextcloud. SealDoc does not determine statutory retention periods.": "Nastaveno správou tohoto Nextcloudu. SealDoc neurčuje zákonné lhůty uchovávání.",
         "Fingerprint of the sealed document": "Otisk zapečetěného dokumentu",
         "Open the evidence pack": "Otevřít důkazní balíček",
-        "No evidence pack was stored. An administrator can switch that on in the SealDoc settings.": "Nebyl uložen žádný důkazní balíček. Lze to zapnout v nastavení SealDoc.",
         "Could not load the seal details.": "Údaje o pečeti se nepodařilo načíst.",
         "Seal with SealDoc": "Zapečetit pomocí SealDoc",
         "Sealed: open the evidence": "Zapečetěno: otevřít důkaz",
@@ -71,7 +70,6 @@
         "Saved": "Uloženo",
         "Could not save": "Nepodařilo se uložit",
         "Testing...": "Testování...",
-        "Server reachable": "Server je dostupný",
         "Fill in a server URL first": "Nejprve vyplňte adresu serveru",
         "Server not reachable": "Server není dostupný",
         "What SealDoc says this evidence is worth": "Jakou hodnotu má tento důkaz podle SealDoc",
@@ -81,7 +79,18 @@
         "The sealed file could not be found, so the fingerprint could not be checked.": "Zapečetěný soubor nebyl nalezen, takže otisk nebylo možné zkontrolovat.",
         "The file is too large to hash while you wait, so the fingerprint was not checked here.": "Soubor je příliš velký na to, aby se jeho hash spočítal, zatímco čekáte, takže otisk zde nebyl zkontrolován.",
         "The evidence ledger chains its events with {algorithm}.": "Kniha důkazů řetězí své události pomocí {algorithm}.",
-        "This evidence pack contains no ledger, so it carries no hash chain and no verification keys. The document is sealed, but this pack on its own proves much less than a complete one. Sealing the document again should produce a full pack.": "Tento balíček důkazů neobsahuje knihu důkazů, takže nenese ani řetězec hašů, ani ověřovací klíče. Dokument je zapečetěný, ale samotný tento balíček dokazuje výrazně méně než úplný balíček. Opětovné zapečetění dokumentu by mělo vytvořit úplný balíček."
+        "This evidence pack contains no ledger, so it carries no hash chain and no verification keys. The document is sealed, but this pack on its own proves much less than a complete one. Sealing the document again should produce a full pack.": "Tento balíček důkazů neobsahuje knihu důkazů, takže nenese ani řetězec hašů, ani ověřovací klíče. Dokument je zapečetěný, ale samotný tento balíček dokazuje výrazně méně než úplný balíček. Opětovné zapečetění dokumentu by mělo vytvořit úplný balíček.",
+        "SealDoc is not configured on this server, so the document was never sent.": "SealDoc není na tomto serveru nastaven, takže dokument nebyl nikdy odeslán.",
+        "The file is too large for this app to send in one piece.": "Soubor je příliš velký na to, aby jej tato aplikace odeslala vcelku.",
+        "SealDoc accepted the document and did not return a sealed version.": "SealDoc dokument přijal a nevrátil zapečetěnou verzi.",
+        "Something went wrong while sealing. The server log has the details.": "Při pečetění se něco pokazilo. Podrobnosti jsou v protokolu serveru.",
+        "Sealing failed": "Pečetění se nezdařilo",
+        "Nothing was written. You can try again from the row menu in Files.": "Nic nebylo zapsáno. Zkusit to znovu můžete z nabídky řádku v aplikaci Soubory.",
+        "Evidence packs are not being stored. An administrator can switch that on in the SealDoc settings.": "Balíčky důkazů se neukládají. Správce to může zapnout v nastavení SealDoc.",
+        "The evidence pack for this document could not be stored. The document is sealed and the seal stands, but the pack an auditor would be handed is missing. The server log says why.": "Balíček důkazů k tomuto dokumentu se nepodařilo uložit. Dokument je zapečetěný a pečeť platí, ale balíček, který by dostal auditor, chybí. Důvod je uveden v protokolu serveru.",
+        "Server reachable and the key works": "Server je dostupný a klíč funguje",
+        "Server reachable. Fill in an API key as well.": "Server je dostupný. Vyplňte také klíč API.",
+        "Server reachable, but it rejected this API key.": "Server je dostupný, ale tento klíč API odmítl."
     },
     "pluralForm": "nplurals=3; plural=(n==1) ? 0 : (n>=2 && n<=4) ? 1 : 2;"
 }

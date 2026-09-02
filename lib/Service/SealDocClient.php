@@ -34,6 +34,12 @@ class SealDocClient {
 	private const CONFIG_STORE_EVIDENCE = 'store_evidence';
 	private const CONFIG_RETENTION_LABEL = 'retention_label';
 
+	/** How often to re-ask for a pack that is not finished yet. */
+	private const PACK_ATTEMPTS = 6;
+
+	/** And the longest single wait between those attempts. */
+	private const PACK_MAX_WAIT_SECONDS = 10;
+
 	/**
 	 * Default off, and that is deliberate. Storing the pack doubles the number
 	 * of files an administrator sees per document, and a folder that suddenly
@@ -130,26 +136,79 @@ class SealDocClient {
 	}
 
 	/**
-	 * Reachability check for the settings screen.
+	 * What the settings screen's "Test connection" button measures.
 	 *
-	 * Deliberately hits the public plans endpoint, which needs no credentials:
-	 * it separates "I cannot reach this host at all" from "the host is there
-	 * but rejects my key". An administrator debugging a firewall wants those
-	 * two answers apart.
+	 * TWO PROBES, BECAUSE ONE ANSWERED THE WRONG QUESTION. This used to hit the
+	 * public plans endpoint only, while its own docblock claimed it separated
+	 * "I cannot reach this host at all" from "the host is there but rejects my
+	 * key". It could not: that endpoint needs no credentials and answers 200
+	 * with no key and 200 with a wrong one. Measured against the live API:
+	 *
+	 *   /api/public/plans   no key   -> 200
+	 *   /api/public/plans   bad key  -> 200
+	 *   /api/jobs?limit=1   no key   -> 401
+	 *   /api/jobs?limit=1   bad key  -> 401
+	 *   /api/jobs?limit=1   real key -> 200
+	 *
+	 * So a truncated or revoked key produced a green "Server reachable", after
+	 * which nothing ever sealed and nothing said why. That is the widest funnel
+	 * into a silent failure this app has.
+	 *
+	 * The reachability probe stays first and stays credential-free, because a
+	 * firewall and a bad key are genuinely different problems and an
+	 * administrator wants them apart. The second probe then answers the
+	 * question the button was always advertised as answering.
+	 *
+	 * @return array{ok: bool, reason: string}
 	 */
 	public function ping(): array {
 		$base = $this->getBaseUrl();
 		if ($base === '') {
 			return ['ok' => false, 'reason' => 'no_url'];
 		}
+
 		try {
 			$response = $this->clientService->newClient()->get($base . '/api/public/plans', [
 				'timeout' => 10,
 				'headers' => ['Accept' => 'application/json'],
 			]);
-			return ['ok' => $response->getStatusCode() === 200, 'reason' => 'reachable'];
+			if ($response->getStatusCode() !== 200) {
+				return ['ok' => false, 'reason' => 'unreachable'];
+			}
 		} catch (\Throwable $e) {
 			$this->logger->info('SealDoc reachability check failed', ['exception' => $e]);
+			return ['ok' => false, 'reason' => 'unreachable'];
+		}
+
+		if (!$this->hasApiKey()) {
+			// Reachable and unusable. Reporting this as success is how an
+			// administrator leaves the page believing setup is finished.
+			return ['ok' => false, 'reason' => 'no_key'];
+		}
+
+		try {
+			// http_errors off on purpose: a 401 is an answer here, not a
+			// transport failure, and letting it throw would render it as
+			// "server not reachable", identical to a DNS error.
+			$response = $this->clientService->newClient()->get($base . '/api/jobs?limit=1', [
+				'timeout' => 10,
+				'headers' => [
+					'X-API-Key' => $this->getApiKey(),
+					'Accept' => 'application/json',
+				],
+				'http_errors' => false,
+			]);
+			$status = $response->getStatusCode();
+			if ($status === 401 || $status === 403) {
+				return ['ok' => false, 'reason' => 'key_rejected'];
+			}
+			if ($status === 200) {
+				return ['ok' => true, 'reason' => 'ok'];
+			}
+			$this->logger->warning('SealDoc key check returned an unexpected status', ['status' => $status]);
+			return ['ok' => false, 'reason' => 'unexpected'];
+		} catch (\Throwable $e) {
+			$this->logger->info('SealDoc key check failed', ['exception' => $e]);
 			return ['ok' => false, 'reason' => 'unreachable'];
 		}
 	}
@@ -229,11 +288,40 @@ class SealDocClient {
 	 * wants stored is a choice, so it is a setting rather than an assumption.
 	 */
 	public function downloadEvidencePack(string $jobId): string {
-		$response = $this->clientService->newClient()->get($this->getBaseUrl() . '/api/jobs/' . rawurlencode($jobId) . '/evidence-pack', [
-			'timeout' => 120,
-			'headers' => ['X-API-Key' => $this->getApiKey()],
-		]);
-		return (string)$response->getBody();
+		$url = $this->getBaseUrl() . '/api/jobs/' . rawurlencode($jobId) . '/evidence-pack';
+
+		// SealDoc answers 409 while the evidence ledger is still being written.
+		//
+		// Vault ingest runs asynchronously there, so for a few seconds after a
+		// job reports completed the pack would be missing ledger.json and
+		// public-keys.jwk. It used to hand that over with a 200 and a manifest
+		// that described the short pack perfectly; now it refuses, which is
+		// right, and this client is the one that has to wait.
+		//
+		// Measured: one pack in seven arrived without a ledger because this app
+		// polls until completed and downloads immediately. Waiting a few seconds
+		// turns that into a complete pack rather than an honest warning about an
+		// incomplete one.
+		for ($attempt = 0; $attempt < self::PACK_ATTEMPTS; $attempt++) {
+			$response = $this->clientService->newClient()->get($url, [
+				'timeout' => 120,
+				'headers' => ['X-API-Key' => $this->getApiKey()],
+				'http_errors' => false,
+			]);
+
+			$status = $response->getStatusCode();
+			if ($status === 200) {
+				return (string)$response->getBody();
+			}
+			if ($status !== 409 && $status !== 425) {
+				throw new RuntimeException('SealDoc returned HTTP ' . $status . ' for the evidence pack');
+			}
+
+			$wait = (int)($response->getHeader('Retry-After') ?: 0);
+			sleep(max(1, min($wait, self::PACK_MAX_WAIT_SECONDS)));
+		}
+
+		throw new RuntimeException('SealDoc did not finish the evidence for job ' . $jobId . ' in time');
 	}
 
 	public function download(string $jobId): string {

@@ -8,7 +8,7 @@
 	},
 	"autoload": {
 		"psr-4": {
-			"OCA\SealDoc\\": "lib/"
+			"OCA\\SealDoc\\": "lib/"
 		}
 	},
 	"config": {

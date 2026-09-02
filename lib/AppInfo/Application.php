@@ -6,6 +6,7 @@ namespace OCA\SealDoc\AppInfo;
 
 use OCA\SealDoc\Listener\RegisterOperationsListener;
 use OCA\SealDoc\Listener\LoadFilesScriptListener;
+use OCA\SealDoc\Listener\NodeDeletedListener;
 use OCA\SealDoc\Listener\SabrePluginListener;
 use OCP\AppFramework\App;
 use OCP\AppFramework\Bootstrap\IBootContext;
@@ -13,6 +14,7 @@ use OCP\AppFramework\Bootstrap\IBootstrap;
 use OCP\AppFramework\Bootstrap\IRegistrationContext;
 use OCA\DAV\Events\SabrePluginAddEvent;
 use OCA\Files\Event\LoadAdditionalScriptsEvent;
+use OCP\Files\Events\Node\NodeDeletedEvent;
 use OCP\WorkflowEngine\Events\RegisterOperationsEvent;
 
 class Application extends App implements IBootstrap {
@@ -42,6 +44,12 @@ class Application extends App implements IBootstrap {
 		// bundled asset in this app and it carries @nextcloud/files, so it has
 		// no business being on every page.
 		$context->registerEventListener(LoadAdditionalScriptsEvent::class, LoadFilesScriptListener::class);
+
+		// Keeps the seal table honest. Nothing ever deleted a row, so removing a
+		// sealed document left the panel asserting a seal, the shield drawing,
+		// the evidence link resolving to nothing, and the original permanently
+		// unsealable with no route back through the UI.
+		$context->registerEventListener(NodeDeletedEvent::class, NodeDeletedListener::class);
 	}
 
 	public function boot(IBootContext $context): void {

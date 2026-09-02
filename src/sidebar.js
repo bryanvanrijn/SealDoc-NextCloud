@@ -11,7 +11,7 @@
  * So a missing guarantee is rendered in red and named, an unknown one is
  * rendered as unknown, and neither is quietly rounded up to a tick.
  */
-import { translate as t } from '@nextcloud/l10n'
+import { translate as t, getCanonicalLocale } from '@nextcloud/l10n'
 import { generateUrl } from '@nextcloud/router'
 import axios from '@nextcloud/axios'
 
@@ -64,7 +64,49 @@ function roleBanner(info) {
 	}
 }
 
+/**
+ * The seal moment, in the language the rest of the panel is in.
+ *
+ * toLocaleString() with no argument takes the browser's locale, which is not
+ * the user's Nextcloud language. A Dutch-language user on an en-US browser read
+ * "Verzegeld op 9/2/2026" for a seal made on 2 September: a Dutch label over an
+ * American date, and two users of one instance reading a different day from the
+ * same row. On the single most audit-relevant value in the app.
+ *
+ * getCanonicalLocale() reads what core already renders on <html>, so the label
+ * and the number now come from the same place.
+ */
+function moment(unix) {
+	if (!unix) {
+		return '-'
+	}
+	try {
+		return new Date(unix * 1000).toLocaleString(getCanonicalLocale())
+	} catch (e) {
+		return new Date(unix * 1000).toISOString()
+	}
+}
+
 function render(el, info) {
+	// Attempted and lost. This used to render as "This document has not been
+	// sealed", which is the sentence a file nobody ever touched gets, so a user
+	// whose click was swallowed could not tell the two apart and neither could
+	// the administrator they asked.
+	if (info.failed) {
+		const why = {
+			not_configured: t('sealdoc', 'SealDoc is not configured on this server, so the document was never sent.'),
+			too_large: t('sealdoc', 'The file is too large for this app to send in one piece.'),
+			sealdoc_failed: t('sealdoc', 'SealDoc accepted the document and did not return a sealed version.'),
+		}[info.failureReason] || t('sealdoc', 'Something went wrong while sealing. The server log has the details.')
+
+		el.innerHTML = [
+			`<p class="sealdoc-verdict sealdoc-verdict-gap">${esc(t('sealdoc', 'Sealing failed'))}</p>`,
+			`<p class="sealdoc-fineprint">${esc(why)}</p>`,
+			`<p class="sealdoc-fineprint">${esc(t('sealdoc', 'Nothing was written. You can try again from the row menu in Files.'))}</p>`,
+		].join('')
+		return
+	}
+
 	if (!info.sealed) {
 		// Waiting and never-sealed are different answers. Collapsing them is
 		// how a queued document that sat for half an hour, on an instance
@@ -85,7 +127,7 @@ function render(el, info) {
 		return
 	}
 
-	const when = info.sealedAt ? new Date(info.sealedAt * 1000).toLocaleString() : '-'
+	const when = moment(info.sealedAt)
 	const parts = [roleBanner(info), `<p class="sealdoc-when">${esc(t('sealdoc', 'Sealed on'))} ${esc(when)}</p>`]
 
 	// The headline before the detail. Somebody who opens this panel because
@@ -187,8 +229,14 @@ function render(el, info) {
 		}
 	} else if (info.evidenceFileId) {
 		parts.push(`<p><a class="sealdoc-link" href="${esc(generateUrl('/f/{id}', { id: info.evidenceFileId }))}">${esc(t('sealdoc', 'Open the evidence pack'))}</a></p>`)
+	} else if (info.storingEvidence === false) {
+		parts.push(`<p class="sealdoc-fineprint">${esc(t('sealdoc', 'Evidence packs are not being stored. An administrator can switch that on in the SealDoc settings.'))}</p>`)
 	} else {
-		parts.push(`<p class="sealdoc-fineprint">${esc(t('sealdoc', 'No evidence pack was stored. An administrator can switch that on in the SealDoc settings.'))}</p>`)
+		// Storing IS on, so the pack was meant to be here and is not: the
+		// download failed, or the write did. Naming the setting as the cause was
+		// the one explanation that could not be true in this branch, and it sent
+		// administrators to switch on something already on.
+		parts.push(`<p class="sealdoc-warning">${esc(t('sealdoc', 'The evidence pack for this document could not be stored. The document is sealed and the seal stands, but the pack an auditor would be handed is missing. The server log says why.'))}</p>`)
 	}
 
 	el.innerHTML = parts.filter(Boolean).join('')

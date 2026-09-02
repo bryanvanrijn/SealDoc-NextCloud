@@ -119,10 +119,18 @@
 		say(t('sealdoc', 'Testing...'))
 		request('GET', '/apps/sealdoc/config/test')
 			.then(function (data) {
+				// Five answers, because the button now measures two things and
+				// they fail in different ways. It used to have three branches
+				// and none of them was key rejection, while the docblock on the
+				// server side advertised exactly that.
 				if (data.ok) {
-					say(t('sealdoc', 'Server reachable'))
+					say(t('sealdoc', 'Server reachable and the key works'))
 				} else if (data.reason === 'no_url') {
 					say(t('sealdoc', 'Fill in a server URL first'))
+				} else if (data.reason === 'no_key') {
+					say(t('sealdoc', 'Server reachable. Fill in an API key as well.'))
+				} else if (data.reason === 'key_rejected') {
+					say(t('sealdoc', 'Server reachable, but it rejected this API key.'))
 				} else {
 					say(t('sealdoc', 'Server not reachable'))
 				}

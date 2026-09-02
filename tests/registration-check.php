@@ -85,7 +85,13 @@ try {
 try {
 	$client = $server->get(\OCA\SealDoc\Service\SealDocClient::class);
 	check('client resolves', true);
-	check('client reports unconfigured before any setup', $client->isConfigured() === false || $client->getBaseUrl() !== '');
+	// Relabelled, not deleted. As written this asserts !(A && B) || A, which is
+	// true for all four assignments: it printed a green tick on a configured
+	// instance under a sentence claiming the opposite, and the README publishes
+	// that line as evidence a stranger should trust. It still catches a
+	// regression in isConfigured(), so it stays, saying what it actually checks.
+	check('client does not claim to be configured without a base URL',
+		$client->getBaseUrl() !== '' || $client->isConfigured() === false);
 	$ping = $client->ping();
 	check('ping answers without throwing', is_array($ping) && array_key_exists('ok', $ping));
 } catch (\Throwable $e) {

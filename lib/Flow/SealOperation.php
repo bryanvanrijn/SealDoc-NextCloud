@@ -51,7 +51,7 @@ class SealOperation implements ISpecificOperation {
 	}
 
 	public function getDescription(): string {
-		return $this->l->t('Convert the file to PDF/A-3B and attach a trusted timestamp, a hash chain and a chain-of-custody record. The sealed file is written next to the original.');
+		return $this->l->t('Convert the file to PDF/A-3B and attach a hash chain, a chain-of-custody record and, where the SealDoc instance can reach a timestamping authority, an RFC 3161 timestamp. The sealed file is written next to the original, and the Seal panel reports per document what its seal actually contains.');
 	}
 
 	public function getIcon(): string {

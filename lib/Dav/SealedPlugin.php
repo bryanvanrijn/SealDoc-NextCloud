@@ -6,6 +6,7 @@ namespace OCA\SealDoc\Dav;
 
 use OCA\DAV\Connector\Sabre\Node;
 use OCA\SealDoc\Db\SealMapper;
+use OCP\IUserSession;
 use OCA\SealDoc\Service\SealFacts;
 use Sabre\DAV\PropFind;
 use Sabre\DAV\Server;
@@ -44,6 +45,7 @@ class SealedPlugin extends ServerPlugin {
 
 	public function __construct(
 		private SealMapper $mapper,
+		private IUserSession $userSession,
 	) {
 	}
 
@@ -71,6 +73,19 @@ class SealedPlugin extends ServerPlugin {
 		$seal = null;
 		try {
 			$seal = $this->mapper->findByAnyFileId($node->getId());
+
+			// The controller already refuses to tell a share recipient that a
+			// seal exists, with a comment saying the evidence is the owner's to
+			// hand over. This file had no such check at all and published
+			// sealed, complete, role and two private file ids to anyone who
+			// could PROPFIND the node. A shared file keeps the owner's fileid,
+			// so the lookup matched for the recipient too, and the two surfaces
+			// then contradicted each other on screen: a shield in the row, and
+			// "this document has not been sealed" in the panel.
+			$user = $this->userSession->getUser();
+			if ($seal !== null && ($user === null || $seal->getUserId() !== $user->getUID())) {
+				$seal = null;
+			}
 		} catch (\Throwable) {
 			// A listing must never fail because of us. No answer is better
 			// than a broken folder.
