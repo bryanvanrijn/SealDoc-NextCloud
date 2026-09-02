@@ -17,7 +17,7 @@
  * registerDavProperty does below. Register only one and the shield silently
  * never appears, with nothing in any log to say why.
  */
-import { registerFileAction, FileAction, registerDavProperty, Node, FileType } from '@nextcloud/files'
+import { registerFileAction, FileAction, registerDavProperty } from '@nextcloud/files'
 import { translate as t } from '@nextcloud/l10n'
 import { generateUrl } from '@nextcloud/router'
 import axios from '@nextcloud/axios'
@@ -42,7 +42,27 @@ const attr = (node, name) => node?.attributes?.[`sealdoc:${name}`]
 
 const isSealed = (node) => String(attr(node, 'sealed') ?? 'false') === 'true'
 const evidenceId = (node) => Number(attr(node, 'evidence-file-id') ?? 0)
-const isFile = (node) => node instanceof Node && node.type === FileType.File
+/**
+ * Is this a file rather than a folder?
+ *
+ * Checked by value, not with `instanceof Node` and `FileType.File`. That was
+ * the first version and it made "Seal with SealDoc" vanish from every row while
+ * the shield, which has no such check, drew perfectly. One of the two imports
+ * did not behave as assumed and there is no way to tell which from the outside:
+ * the predicate just returns false and the entry silently never renders.
+ *
+ * A string comparison with a fallback on the mime type cannot fail that way.
+ */
+const isFile = (node) => {
+	const type = String(node?.type ?? '')
+	if (type === 'file') {
+		return true
+	}
+	if (type === 'folder') {
+		return false
+	}
+	return Boolean(node?.mime)
+}
 
 const shieldIcon = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="20" height="20" aria-hidden="true">
 	<path d="M12 2 4 5v6.5c0 4.6 3.4 8.5 8 9.5 4.6-1 8-4.9 8-9.5V5l-8-3Z" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linejoin="round"/>
