@@ -3,6 +3,43 @@
 All notable changes to this app are documented here.
 The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
+## [0.3.0] - 2026-09-02
+
+### Added
+
+- **A Seal panel in the file sidebar**, showing what the seal actually contains: the archival
+  format, the trusted timestamp, the chain of custody and the audit trail, plus the fingerprint
+  of the sealed document and a link to its evidence pack.
+- The panel is built on **three states, not two**: yes, no, and unknown. A guarantee that is
+  missing is rendered in red and named; one that could not be read back is rendered as unknown.
+  Neither is quietly rounded up to a tick.
+- An optional **retention policy** field. See below.
+- **Seven translations** (nl, de, fr, es, it, pl, cs) covering all 26 strings in the app.
+- The compliance passport is now stored with the seal, so the panel reports what SealDoc said
+  rather than what this app assumed. The pack is fetched on every seal for that reason; writing
+  the zip to disk stays optional.
+
+### Why the panel is not a row of green ticks
+
+Because the first document sealed through this app came back a valid PDF/A-3B, with a complete
+chain of custody, and **no timestamp at all**. That path fails open on the server, and nothing
+anywhere said so: the only record was a field in a JSON file inside a zip nobody opens.
+
+A panel that assumed the promise would have shown a tick over a missing guarantee, which is
+worse than having no panel. So a missing timestamp is red, named, and followed by a sentence
+saying what it costs: the document proves its own integrity but not the moment it existed.
+
+### Why there is no statutory retention period
+
+SealDoc cannot know how long a document must be kept. That depends on what the document is, in
+which country, under which rule, and none of those are visible to a sealing service. Printing
+"statutory retention: 7 years" next to a file it knows nothing about is the one kind of claim a
+compliance product must never make.
+
+So the field is free text written by an administrator, and the panel labels it as the
+organisation's own policy with a line saying SealDoc does not determine statutory periods. Empty
+by default, because an empty row is honest and a guessed one is not.
+
 ## [0.2.0] - 2026-09-02
 
 ### Added

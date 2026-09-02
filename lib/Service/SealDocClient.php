@@ -32,6 +32,7 @@ class SealDocClient {
 	private const CONFIG_API_KEY = 'api_key';
 	private const CONFIG_EVIDENCE_FOLDER = 'evidence_folder';
 	private const CONFIG_STORE_EVIDENCE = 'store_evidence';
+	private const CONFIG_RETENTION_LABEL = 'retention_label';
 
 	/**
 	 * Default off, and that is deliberate. Storing the pack doubles the number
@@ -101,6 +102,27 @@ class SealDocClient {
 
 	public function setEvidenceFolder(string $path): void {
 		$this->config->setAppValue(self::APP_ID, self::CONFIG_EVIDENCE_FOLDER, '/' . trim(trim($path), '/'));
+	}
+
+	/**
+	 * The organisation's own retention statement, shown as such.
+	 *
+	 * SealDoc does not know how long a document has to be kept. That depends on
+	 * what the document IS, in which country, under which rule, and none of
+	 * those are things a sealing service can see. Printing "statutory retention:
+	 * 7 years" next to a file it knows nothing about would be the one kind of
+	 * claim a compliance product must never make.
+	 *
+	 * So the text is whatever the administrator writes, and the panel labels it
+	 * as the organisation's policy rather than as a fact. Empty by default,
+	 * because an empty panel row is honest and a guessed one is not.
+	 */
+	public function getRetentionLabel(): string {
+		return trim((string)$this->config->getAppValue(self::APP_ID, self::CONFIG_RETENTION_LABEL, ''));
+	}
+
+	public function setRetentionLabel(string $label): void {
+		$this->config->setAppValue(self::APP_ID, self::CONFIG_RETENTION_LABEL, trim($label));
 	}
 
 	public function isConfigured(): bool {

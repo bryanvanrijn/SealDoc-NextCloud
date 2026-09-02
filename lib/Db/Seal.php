@@ -24,6 +24,8 @@ use OCP\AppFramework\Db\Entity;
  * @method void setEvidenceFileId(int $evidenceFileId)
  * @method string getUserId()
  * @method void setUserId(string $userId)
+ * @method ?string getPassport()
+ * @method void setPassport(?string $passport)
  * @method int getSealedAt()
  * @method void setSealedAt(int $sealedAt)
  */
@@ -34,6 +36,7 @@ class Seal extends Entity {
 	protected int $evidenceFileId = 0;
 	protected string $userId = '';
 	protected int $sealedAt = 0;
+	protected ?string $passport = null;
 
 	public function __construct() {
 		$this->addType('fileId', 'integer');

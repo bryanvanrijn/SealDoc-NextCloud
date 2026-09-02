@@ -25,5 +25,7 @@ class LoadFilesScriptListener implements IEventListener {
 			return;
 		}
 		Util::addScript(Application::APP_ID, 'files-shield');
+		Util::addScript(Application::APP_ID, 'sidebar');
+		Util::addStyle(Application::APP_ID, 'admin');
 	}
 }

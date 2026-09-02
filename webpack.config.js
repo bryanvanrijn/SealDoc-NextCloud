@@ -18,6 +18,7 @@ const path = require('path')
 module.exports = {
 	entry: {
 		'files-shield': path.join(__dirname, 'src', 'files-shield.js'),
+		'sidebar': path.join(__dirname, 'src', 'sidebar.js'),
 	},
 	output: {
 		path: path.join(__dirname, 'js'),

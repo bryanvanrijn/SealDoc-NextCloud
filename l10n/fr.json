@@ -1,0 +1,31 @@
+{
+    "translations": {
+        "Seal": "Sceau",
+        "Loading...": "Chargement...",
+        "This document has not been sealed.": "Ce document n’a pas été scellé.",
+        "Sealed on": "Scellé le",
+        "Archival format PDF/A-3B": "Format d’archivage PDF/A-3B",
+        "validated against ISO 19005-3": "validé selon ISO 19005-3",
+        "Trusted timestamp (RFC 3161)": "Horodatage de confiance (RFC 3161)",
+        "not attached to this document": "non apposé à ce document",
+        "Chain of custody": "Chaîne de responsabilité",
+        "Tamper-evident audit trail": "Piste d’audit inviolable",
+        "Without a trusted timestamp this document proves its own integrity, but not the moment it existed. A third party has only your word for the date.": "Sans horodatage de confiance, ce document prouve sa propre intégrité, mais pas le moment où il existait. Un tiers n’a que votre parole pour la date.",
+        "No compliance passport was stored for this seal, so what it contains could not be read back.": "Aucun passeport de conformité n’a été enregistré pour ce scellement, son contenu n’a donc pas pu être relu.",
+        "Retention policy of this organisation": "Politique de conservation de cette organisation",
+        "Set by an administrator of this Nextcloud. SealDoc does not determine statutory retention periods.": "Défini par l’administration de ce Nextcloud. SealDoc ne détermine pas les durées légales de conservation.",
+        "Fingerprint of the sealed document": "Empreinte du document scellé",
+        "Open the evidence pack": "Ouvrir le dossier de preuve",
+        "No evidence pack was stored. An administrator can switch that on in the SealDoc settings.": "Aucun dossier de preuve n’a été enregistré. Cela peut être activé dans les réglages SealDoc.",
+        "Could not load the seal details.": "Impossible de charger les détails du sceau.",
+        "Seal with SealDoc": "Sceller avec SealDoc",
+        "Sealed: open the evidence": "Scellé : ouvrir la preuve",
+        "This document has been sealed. Open its evidence pack.": "Ce document a été scellé. Ouvrez son dossier de preuve.",
+        "This document was already sealed.": "Ce document était déjà scellé.",
+        "Queued for sealing. The sealed document appears next to the original shortly.": "Mis en file pour scellement. Le document scellé apparaîtra bientôt à côté de l’original.",
+        "SealDoc is not configured yet. An administrator has to set the server URL and API key.": "SealDoc n’est pas encore configuré. L’URL du serveur et la clé d’API doivent être renseignées.",
+        "Could not queue this document for sealing.": "Impossible de mettre ce document en file d’attente.",
+        "This document is sealed, but no evidence pack was stored for it.": "Ce document est scellé, mais aucun dossier de preuve n’a été enregistré."
+    },
+    "pluralForm": "nplurals=2; plural=(n > 1);"
+}

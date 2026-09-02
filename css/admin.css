@@ -8,3 +8,31 @@
 	margin-bottom: .25em;
 	font-weight: bold;
 }
+
+/* The Seal panel in the file sidebar.
+ *
+ * The three states are coloured on purpose and a missing guarantee is red, not
+ * grey. A panel that renders "no timestamp" as quietly as "timestamp present"
+ * is a panel that hides the one thing an auditor came for.
+ */
+.sealdoc-tab { padding: 0 4px; }
+.sealdoc-tab .sealdoc-when { color: var(--color-text-maxcontrast); margin-bottom: 12px; }
+.sealdoc-tab .sealdoc-list { list-style: none; margin: 0 0 12px; padding: 0; }
+.sealdoc-tab .sealdoc-row { display: flex; align-items: baseline; gap: 8px; padding: 4px 0; }
+.sealdoc-tab .sealdoc-mark { flex: 0 0 1.1em; font-weight: bold; }
+.sealdoc-tab .sealdoc-yes .sealdoc-mark { color: var(--color-success, #2d7b2d); }
+.sealdoc-tab .sealdoc-no .sealdoc-mark { color: var(--color-error, #c0392b); }
+.sealdoc-tab .sealdoc-unknown .sealdoc-mark { color: var(--color-text-maxcontrast); }
+.sealdoc-tab .sealdoc-no .sealdoc-label { font-weight: bold; }
+.sealdoc-tab .sealdoc-note { color: var(--color-text-maxcontrast); font-size: 90%; }
+.sealdoc-tab .sealdoc-warning {
+	border-left: 3px solid var(--color-warning, #c8a200);
+	padding: 8px 10px; margin: 12px 0;
+	background: var(--color-background-hover);
+	border-radius: 0 var(--border-radius) var(--border-radius) 0;
+}
+.sealdoc-tab .sealdoc-heading { margin: 16px 0 4px; font-size: 100%; }
+.sealdoc-tab .sealdoc-policy { margin: 0; }
+.sealdoc-tab .sealdoc-fineprint { color: var(--color-text-maxcontrast); font-size: 90%; margin-top: 4px; }
+.sealdoc-tab .sealdoc-hash { display: block; word-break: break-all; font-size: 85%; }
+.sealdoc-tab .sealdoc-empty { color: var(--color-text-maxcontrast); }

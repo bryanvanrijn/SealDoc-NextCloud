@@ -20,12 +20,14 @@
 	const key = document.getElementById('sealdoc-api-key')
 	const store = document.getElementById('sealdoc-store-evidence')
 	const folder = document.getElementById('sealdoc-evidence-folder')
+	const retention = document.getElementById('sealdoc-retention')
 	const keyState = document.getElementById('sealdoc-key-state')
 	const result = document.getElementById('sealdoc-result')
 
 	url.value = state.baseUrl || ''
 	store.checked = !!state.storeEvidence
 	folder.value = state.evidenceFolder || ''
+	retention.value = state.retentionLabel || ''
 	renderKeyState(state.hasApiKey)
 
 	function renderKeyState(has) {
@@ -58,6 +60,7 @@
 			baseUrl: url.value,
 			storeEvidence: store.checked,
 			evidenceFolder: folder.value,
+			retentionLabel: retention.value,
 		}
 		// Only send the key when the field was actually filled in. An empty
 		// field means "leave what is stored alone", not "delete it"; the
@@ -72,6 +75,7 @@
 				key.value = ''
 				url.value = data.baseUrl || ''
 				folder.value = data.evidenceFolder || ''
+				retention.value = data.retentionLabel || ''
 				store.checked = !!data.storeEvidence
 				renderKeyState(data.hasApiKey)
 				say(t('sealdoc', 'Saved'))

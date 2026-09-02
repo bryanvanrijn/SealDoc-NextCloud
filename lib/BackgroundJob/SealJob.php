@@ -89,9 +89,26 @@ class SealJob extends QueuedJob {
 			// it in the working folder and every invoice directory doubles in
 			// size, which is the complaint an administrator raises long before
 			// the compliance benefit is noticed.
+			// The pack is fetched either way, because the compliance passport
+			// inside it is the only place that says whether a timestamp was
+			// actually attached. Writing the zip to disk is the part that is
+			// optional; knowing what the seal contains is not, or the panel
+			// would have to guess and a panel that guesses is worse than none.
+			$pack = null;
+			try {
+				$pack = $this->client->downloadEvidencePack($jobId);
+			} catch (\Throwable $e) {
+				$this->logger->warning('SealDoc could not fetch the evidence pack', [
+					'exception' => $e,
+					'jobId' => $jobId,
+				]);
+			}
+
+			$passport = $pack === null ? null : $this->extractPassport($pack);
+
 			$evidenceFileId = 0;
-			if ($this->client->isStoringEvidence()) {
-				$evidenceFileId = $this->storeEvidence($userFolder, $jobId, $node->getName());
+			if ($pack !== null && $this->client->isStoringEvidence()) {
+				$evidenceFileId = $this->storeEvidence($userFolder, $pack, $node->getName());
 			}
 
 			$seal = new Seal();
@@ -100,6 +117,7 @@ class SealJob extends QueuedJob {
 			$seal->setSealedFileId($sealedFile->getId());
 			$seal->setEvidenceFileId($evidenceFileId);
 			$seal->setUserId($userId);
+			$seal->setPassport($passport);
 			$seal->setSealedAt(time());
 			$this->mapper->insert($seal);
 
@@ -126,9 +144,8 @@ class SealJob extends QueuedJob {
 	 *
 	 * @return int the file id of the stored pack, or 0 when it could not be stored
 	 */
-	private function storeEvidence(Folder $userFolder, string $jobId, string $originalName): int {
+	private function storeEvidence(Folder $userFolder, string $pack, string $originalName): int {
 		try {
-			$pack = $this->client->downloadEvidencePack($jobId);
 			$folder = $this->ensureFolder($userFolder, $this->client->getEvidenceFolder() . '/' . date('Y'));
 
 			$name = $this->uniqueName($folder, $this->evidenceName($originalName));
@@ -136,10 +153,7 @@ class SealJob extends QueuedJob {
 		} catch (\Throwable $e) {
 			// A missing pack must not undo a successful seal. The sealed
 			// document is already written and is the thing the user asked for.
-			$this->logger->error('SealDoc could not store the evidence pack', [
-				'exception' => $e,
-				'jobId' => $jobId,
-			]);
+			$this->logger->error('SealDoc could not store the evidence pack', ['exception' => $e]);
 			return 0;
 		}
 	}
@@ -174,6 +188,35 @@ class SealJob extends QueuedJob {
 			}
 		}
 		return $stem . '-' . time() . self::EVIDENCE_SUFFIX;
+	}
+
+	/**
+	 * Pulls compliance_passport.json out of the pack.
+	 *
+	 * Stored verbatim. The panel reports what the evidence says; summarising it
+	 * here would put a second version of the truth in the database, and the two
+	 * would eventually disagree.
+	 */
+	private function extractPassport(string $pack): ?string {
+		$tmp = tempnam(sys_get_temp_dir(), 'sealdoc');
+		if ($tmp === false) {
+			return null;
+		}
+		try {
+			file_put_contents($tmp, $pack);
+			$zip = new \ZipArchive();
+			if ($zip->open($tmp) !== true) {
+				return null;
+			}
+			$json = $zip->getFromName('compliance_passport.json');
+			$zip->close();
+			return $json === false ? null : $json;
+		} catch (\Throwable $e) {
+			$this->logger->warning('SealDoc could not read the compliance passport', ['exception' => $e]);
+			return null;
+		} finally {
+			@unlink($tmp);
+		}
 	}
 
 	private function await(string $jobId): ?string {

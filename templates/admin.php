@@ -31,6 +31,15 @@ declare(strict_types=1);
 	</p>
 
 	<p>
+		<label for="sealdoc-retention"><?php p($l->t('Retention policy shown in the Seal panel')); ?></label><br>
+		<input type="text" id="sealdoc-retention" style="width: 24em;"
+		       placeholder="<?php p($l->t('for example: invoices are kept for 7 years')); ?>">
+	</p>
+	<p class="settings-hint">
+		<?php p($l->t('Optional, and shown in the panel as this organisation own policy. SealDoc cannot determine statutory retention periods: those depend on what the document is and which jurisdiction it falls under, neither of which a sealing service can see. Leave it empty rather than guess.')); ?>
+	</p>
+
+	<p>
 		<button id="sealdoc-save"><?php p($l->t('Save')); ?></button>
 		<button id="sealdoc-test"><?php p($l->t('Test connection')); ?></button>
 		<span id="sealdoc-result" class="sealdoc-muted"></span>

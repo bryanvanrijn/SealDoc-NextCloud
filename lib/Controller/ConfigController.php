@@ -21,7 +21,7 @@ class ConfigController extends Controller {
 	}
 
 	#[AuthorizedAdminSetting(settings: Admin::class)]
-	public function setConfig(?string $baseUrl = null, ?string $apiKey = null, ?bool $storeEvidence = null, ?string $evidenceFolder = null): DataResponse {
+	public function setConfig(?string $baseUrl = null, ?string $apiKey = null, ?bool $storeEvidence = null, ?string $evidenceFolder = null, ?string $retentionLabel = null): DataResponse {
 		if ($baseUrl !== null) {
 			$this->client->setBaseUrl($baseUrl);
 		}

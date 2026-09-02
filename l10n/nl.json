@@ -1,0 +1,31 @@
+{
+    "translations": {
+        "Seal": "Zegel",
+        "Loading...": "Laden...",
+        "This document has not been sealed.": "Dit document is niet verzegeld.",
+        "Sealed on": "Verzegeld op",
+        "Archival format PDF/A-3B": "Archiefformaat PDF/A-3B",
+        "validated against ISO 19005-3": "gevalideerd tegen ISO 19005-3",
+        "Trusted timestamp (RFC 3161)": "Betrouwbare tijdstempel (RFC 3161)",
+        "not attached to this document": "niet aan dit document toegevoegd",
+        "Chain of custody": "Chain of custody",
+        "Tamper-evident audit trail": "Manipulatiebestendig audittrail",
+        "Without a trusted timestamp this document proves its own integrity, but not the moment it existed. A third party has only your word for the date.": "Zonder betrouwbare tijdstempel bewijst dit document zijn eigen integriteit, maar niet het moment waarop het bestond. Een derde heeft voor die datum alleen jouw woord.",
+        "No compliance passport was stored for this seal, so what it contains could not be read back.": "Voor deze verzegeling is geen compliance-paspoort opgeslagen, dus wat erin zit is niet terug te lezen.",
+        "Retention policy of this organisation": "Bewaarbeleid van deze organisatie",
+        "Set by an administrator of this Nextcloud. SealDoc does not determine statutory retention periods.": "Ingesteld door een beheerder van deze Nextcloud. SealDoc bepaalt geen wettelijke bewaartermijnen.",
+        "Fingerprint of the sealed document": "Vingerafdruk van het verzegelde document",
+        "Open the evidence pack": "Bewijspakket openen",
+        "No evidence pack was stored. An administrator can switch that on in the SealDoc settings.": "Er is geen bewijspakket opgeslagen. Een beheerder kan dat aanzetten in de SealDoc-instellingen.",
+        "Could not load the seal details.": "Kon de zegelgegevens niet laden.",
+        "Seal with SealDoc": "Verzegelen met SealDoc",
+        "Sealed: open the evidence": "Verzegeld: bewijs openen",
+        "This document has been sealed. Open its evidence pack.": "Dit document is verzegeld. Open het bewijspakket.",
+        "This document was already sealed.": "Dit document was al verzegeld.",
+        "Queued for sealing. The sealed document appears next to the original shortly.": "In de wachtrij gezet. Het verzegelde document verschijnt zo naast het origineel.",
+        "SealDoc is not configured yet. An administrator has to set the server URL and API key.": "SealDoc is nog niet ingesteld. Een beheerder moet de server-URL en API-sleutel invullen.",
+        "Could not queue this document for sealing.": "Kon dit document niet in de wachtrij zetten.",
+        "This document is sealed, but no evidence pack was stored for it.": "Dit document is verzegeld, maar er is geen bewijspakket voor opgeslagen."
+    },
+    "pluralForm": "nplurals=2; plural=(n != 1);"
+}
