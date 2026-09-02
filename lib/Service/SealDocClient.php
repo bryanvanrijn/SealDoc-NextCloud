@@ -168,11 +168,29 @@ class SealDocClient {
 				'X-API-Key' => $this->getApiKey(),
 				'Accept' => 'application/json',
 			],
-			'multipart' => [[
-				'name' => 'file',
-				'contents' => $content,
-				'filename' => $filename,
-			]],
+			'multipart' => [
+				[
+					'name' => 'file',
+					'contents' => $content,
+					'filename' => $filename,
+				],
+				// Asked for explicitly, because SealDoc will not do it otherwise.
+				//
+				// This field defaults to false on the API, and this client never
+				// sent it. Four documents therefore came back sealed and without
+				// the one thing the whole promise leans on, and the panel spent a
+				// release honestly reporting a gap this app had created itself.
+				//
+				// It costs nothing to ask: there is no plan gate on timestamps,
+				// and the path is fail-open, so a TSA that cannot be reached
+				// still yields a completed job. The passport then says the
+				// timestamp is missing and the panel shows it in red, which is
+				// the outcome we want in that case.
+				[
+					'name' => 'timestampRfc3161',
+					'contents' => 'true',
+				],
+			],
 		]);
 
 		$body = json_decode((string)$response->getBody(), true);

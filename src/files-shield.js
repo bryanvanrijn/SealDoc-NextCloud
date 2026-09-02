@@ -91,6 +91,9 @@ const wrap = (inner) => `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24
 // see which documents will not hold up without opening anything.
 const shieldIcon = wrap('<path d="m8.5 12 2.6 2.6L16 9.7" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>')
 const shieldGapIcon = wrap('<path d="M12 7.5v5.2M12 16.2v.6" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"/>')
+// The original, which is part of a seal but carries none of it. An empty
+// outline: present, and deliberately not a tick.
+const shieldSourceIcon = wrap('<path d="M9 12.5h6" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/>')
 const shieldUnknownIcon = wrap('<path d="M10.1 9.6a2 2 0 1 1 2.6 2.2c-.5.2-.8.7-.8 1.3v.4M12 16.3v.6" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"/>')
 
 const sealIcon = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="20" height="20" aria-hidden="true">
@@ -148,6 +151,14 @@ registerFileAction(new FileAction({
 		if (roleOf(node) === 'evidence') {
 			return t('sealdoc', 'Evidence pack: open the sealed document')
 		}
+		// The input file. It matches the seal, which is how you get from it to
+		// the evidence, but it is not the artefact the evidence describes: it
+		// was never converted and never hashed into the pack. Giving it the
+		// same label as the output put "This document has been sealed" on an
+		// unconverted .txt sitting right next to the PDF that really was.
+		if (roleOf(node) === 'source') {
+			return t('sealdoc', 'Open the sealed document')
+		}
 		switch (completeness(node)) {
 		case 'false':
 			return t('sealdoc', 'Sealed, with gaps: open the evidence')
@@ -161,6 +172,9 @@ registerFileAction(new FileAction({
 		if (roleOf(node) === 'evidence') {
 			return t('sealdoc', 'This is the evidence pack for a sealed document.')
 		}
+		if (roleOf(node) === 'source') {
+			return t('sealdoc', 'This is the original. The sealed version is the file that carries the evidence.')
+		}
 		switch (completeness(node)) {
 		case 'false':
 			return t('sealdoc', 'This document was sealed, but at least one guarantee is missing. Open the Seal panel to see which.')
@@ -171,6 +185,9 @@ registerFileAction(new FileAction({
 		}
 	},
 	iconSvgInline: ([node]) => {
+		if (roleOf(node) === 'source') {
+			return shieldSourceIcon
+		}
 		switch (completeness(node)) {
 		case 'false':
 			return shieldGapIcon
@@ -188,8 +205,10 @@ registerFileAction(new FileAction({
 
 	async exec(node) {
 		// On the pack itself, "open the evidence" would reopen the file you are
-		// already looking at. Send the reader to the document it belongs to.
-		if (roleOf(node) === 'evidence') {
+		// already looking at, and on the original it would skip past the file
+		// that actually carries the seal. Both are one step from the sealed
+		// document, so both go there.
+		if (roleOf(node) === 'evidence' || roleOf(node) === 'source') {
 			const doc = sealedId(node)
 			if (doc) {
 				window.location.href = generateUrl('/f/{id}', { id: doc })

@@ -3,6 +3,27 @@
 All notable changes to this app are documented here.
 The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
+## [0.4.2] - 2026-09-02
+
+### Fixed
+
+- **This app never asked SealDoc for a timestamp.** `POST /api/jobs` takes a `timestampRfc3161`
+  form field that defaults to false, and this client sent only the file. Every document it sealed
+  therefore came back without the one guarantee the whole promise leans on, and the panel spent a
+  release honestly reporting a gap this app had created itself.
+
+  Proven by sending the field and nothing else: `timestampedAt: 2026-09-02T08:42:30Z`, a real TSA
+  certificate thumbprint, `timestamp_token.tsr` in the pack, and SealDoc's own ledger verdict
+  moving from `VALID-WITH-LOWER-ASSURANCE` to **`VALID`**, note *"Time asserted by an independent
+  RFC 3161 authority."* Four red rows in the panel turned green without a line of panel code
+  changing.
+
+- **The original wore the sealed document's shield.** A seal matches all three of its files, so
+  the unconverted `.txt` sitting next to the PDF/A drew the same shield, the same label and the
+  same tooltip as the file that actually carries the evidence, and clicking it opened the other
+  file's pack. The original now has its own outline shield and says what it is; both it and the
+  pack lead to the sealed document.
+
 ## [0.4.0] - 2026-09-02
 
 ### Fixed
